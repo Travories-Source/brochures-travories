@@ -1,6 +1,6 @@
 import { StyleSheet } from "@react-pdf/renderer";
 
-import { BROCHURE_COLOR as C, BROCHURE_FONT, BROCHURE_PAGE } from "./theme";
+import { BROCHURE_COLOR as C, BROCHURE_FONT, BROCHURE_PAGE } from "./theme.js";
 
 const sans = BROCHURE_FONT.sans;
 

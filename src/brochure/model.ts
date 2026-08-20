@@ -3,7 +3,7 @@
 // Kept separate from the document so the layout code deals only in ready-made
 // strings — no fallbacks, no HTML, no null checks scattered through the JSX.
 
-import type { BrochurePackageSource } from "./source";
+import type { BrochurePackageSource } from "./source.js";
 
 import {
   describeParty,
@@ -14,9 +14,9 @@ import {
   type BrochureParty,
   type PartyQuote,
   type PricingTier,
-} from "./party";
-import { htmlToParagraphs, htmlToText } from "./sanitizeHtml";
-import { BROCHURE_COLOR, DIFFICULTY_FILL } from "./theme";
+} from "./party.js";
+import { htmlToParagraphs, htmlToText } from "./sanitizeHtml.js";
+import { BROCHURE_COLOR, DIFFICULTY_FILL } from "./theme.js";
 
 export interface BrochureFact {
   icon: "suitcase" | "speed" | "calendar" | "camping";

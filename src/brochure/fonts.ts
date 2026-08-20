@@ -1,6 +1,6 @@
 import { Font } from "@react-pdf/renderer";
 
-import { BROCHURE_FONT } from "./theme";
+import { BROCHURE_FONT } from "./theme.js";
 
 /**
  * Where the brochure TTFs live.

@@ -1,4 +1,4 @@
-import type { BrochurePackageSource } from "./source";
+import type { BrochurePackageSource } from "./source.js";
 
 /**
  * Pricing for the brochure, mirroring the booking flow.

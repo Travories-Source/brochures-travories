@@ -1,4 +1,4 @@
-import type { BrochurePackageSource } from "./source";
+import type { BrochurePackageSource } from "./source.js";
 
 const SITE_ORIGIN = "https://travories.com";
 

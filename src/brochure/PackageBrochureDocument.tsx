@@ -2,11 +2,11 @@
 import React from "react";
 import { Document, Image, Link, Page, Path, Rect, Svg, Text, View } from "@react-pdf/renderer";
 
-import { BROCHURE_ICONS, type BrochureIconName, type IconSpec } from "./iconPaths";
-import type { BrochureDay, BrochureModel, BrochureService } from "./model";
-import type { QrMatrix } from "./qr";
-import { styles } from "./styles";
-import { BROCHURE_COLOR as C, BROCHURE_CURRENCY, BROCHURE_PAGE } from "./theme";
+import { BROCHURE_ICONS, type BrochureIconName, type IconSpec } from "./iconPaths.js";
+import type { BrochureDay, BrochureModel, BrochureService } from "./model.js";
+import type { QrMatrix } from "./qr.js";
+import { styles } from "./styles.js";
+import { BROCHURE_COLOR as C, BROCHURE_CURRENCY, BROCHURE_PAGE } from "./theme.js";
 
 /** Travories wordmark, lifted from `components/Common/SiteLayout/Navbar/Logo.tsx`. */
 const LOGO_VIEWBOX = "110 560 860 160";

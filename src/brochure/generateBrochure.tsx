@@ -1,13 +1,13 @@
 import { pdf } from "@react-pdf/renderer";
 
-import type { BrochurePackageSource } from "./source";
+import type { BrochurePackageSource } from "./source.js";
 
-import { ensureBrochureFonts } from "./fonts";
-import { buildBrochureModel, type BrochureModel } from "./model";
-import { resolvePackageUrl } from "./packageLink";
-import { PackageBrochureDocument } from "./PackageBrochureDocument";
-import type { BrochureParty } from "./party";
-import { buildQrMatrix, type QrMatrix } from "./qr";
+import { ensureBrochureFonts } from "./fonts.js";
+import { buildBrochureModel, type BrochureModel } from "./model.js";
+import { resolvePackageUrl } from "./packageLink.js";
+import { PackageBrochureDocument } from "./PackageBrochureDocument.js";
+import type { BrochureParty } from "./party.js";
+import { buildQrMatrix, type QrMatrix } from "./qr.js";
 
 /**
  * The Figma frame is a single continuous canvas (1440 x 7798), and the

@@ -5,11 +5,11 @@ import Fastify, { type FastifyInstance } from "fastify";
 import { renderToBuffer } from "@react-pdf/renderer";
 import React from "react";
 
-import { PackageBrochureDocument } from "./brochure/PackageBrochureDocument";
-import { registerBrochureFonts } from "./brochure/fonts";
-import { buildBrochureModel } from "./brochure/model";
-import type { BrochureParty } from "./brochure/party";
-import type { BrochurePackageSource } from "./brochure/source";
+import { PackageBrochureDocument } from "./brochure/PackageBrochureDocument.js";
+import { registerBrochureFonts } from "./brochure/fonts.js";
+import { buildBrochureModel } from "./brochure/model.js";
+import type { BrochureParty } from "./brochure/party.js";
+import type { BrochurePackageSource } from "./brochure/source.js";
 
 const MAX_IMAGE_BYTES = 12 * 1024 * 1024;
 const fontDir = join(process.cwd(), "assets", "fonts", "brochure");

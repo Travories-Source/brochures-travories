@@ -1,4 +1,4 @@
-import { createApp } from "../src/server";
+import { createApp } from "../src/server.js";
 
 const app = createApp(process.env.BROCHURE_SERVICE_TOKEN);
 let ready: Promise<void> | undefined;
