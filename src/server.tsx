@@ -1,7 +1,7 @@
 import { createHash, timingSafeEqual } from "node:crypto";
 import { join } from "node:path";
 
-import Fastify from "fastify";
+import Fastify, { type FastifyInstance } from "fastify";
 import { renderToBuffer } from "@react-pdf/renderer";
 import React from "react";
 
@@ -71,10 +71,7 @@ async function render(body: RequestBody): Promise<{ bytes: Buffer; filename: str
   return { bytes: Buffer.from(bytes), filename };
 }
 
-async function start() {
-  const token = process.env.BROCHURE_SERVICE_TOKEN;
-  if (!token) throw new Error("BROCHURE_SERVICE_TOKEN must be set");
-
+export function createApp(token: string): FastifyInstance {
   registerBrochureFonts(fontDir);
   const app = Fastify({ logger: true, bodyLimit: 2 * 1024 * 1024 });
 
@@ -97,10 +94,16 @@ async function start() {
       .send(result.bytes);
   });
 
-  await app.listen({ host: process.env.HOST ?? "0.0.0.0", port: Number(process.env.PORT ?? 3001) });
+  return app;
 }
 
-start().catch((error) => {
-  console.error(error);
-  process.exit(1);
-});
+const token = process.env.BROCHURE_SERVICE_TOKEN;
+if (import.meta.url === `file://${process.argv[1]}`) {
+  if (!token) throw new Error("BROCHURE_SERVICE_TOKEN must be set");
+  createApp(token)
+    .listen({ host: process.env.HOST ?? "0.0.0.0", port: Number(process.env.PORT ?? 3001) })
+    .catch((error) => {
+      console.error(error);
+      process.exit(1);
+    });
+}
