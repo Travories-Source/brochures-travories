@@ -1,9 +1,9 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "framework": "fastify",
+  "framework": null,
   "rewrites": [{ "source": "/(.*)", "destination": "/api" }],
   "functions": {
-    "api/index.ts": {
+    "api/index.cjs": {
       "maxDuration": 60,
       "memory": 1024,
       "includeFiles": "assets/fonts/**"
