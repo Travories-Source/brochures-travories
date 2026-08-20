@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "tsx --env-file=.env watch src/server.ts",
+    "dev": "tsx watch --env-file=.env src/server.ts",
     "start": "tsx --env-file=.env src/server.ts",
     "typecheck": "tsc --noEmit",
     "vercel-build": "esbuild src/vercel.ts --bundle --platform=node --target=node22 --format=cjs --outfile=api/index.cjs --footer:js=\"module.exports=module.exports.default\""
