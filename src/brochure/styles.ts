@@ -1,0 +1,270 @@
+import { StyleSheet } from "@react-pdf/renderer";
+
+import { BROCHURE_COLOR as C, BROCHURE_FONT, BROCHURE_PAGE } from "./theme";
+
+const sans = BROCHURE_FONT.sans;
+
+/**
+ * Every measurement is in Figma px, which map 1:1 to PDF points because the
+ * page is emitted at the frame's own 1440pt width.
+ *
+ * `lineHeight` in @react-pdf is a unitless multiplier, so Figma's pixel leading
+ * is expressed as leading/fontSize (e.g. 20px on 18px text -> 1.111).
+ */
+export const styles = StyleSheet.create({
+  page: {
+    backgroundColor: C.white,
+    paddingTop: BROCHURE_PAGE.paddingTop,
+    paddingBottom: BROCHURE_PAGE.paddingBottom,
+    paddingHorizontal: BROCHURE_PAGE.paddingX,
+    fontFamily: sans,
+    color: C.text,
+  },
+
+  /* ── Header ─────────────────────────────────────────────────────────── */
+  header: { alignItems: "center", gap: 40 },
+  brandRow: { flexDirection: "row", alignItems: "center", gap: 12, height: 34 },
+  titleBlock: { alignItems: "center", gap: 16, width: 1107 },
+  subtitle: {
+    fontSize: 24,
+    fontStyle: "italic",
+    color: C.text,
+    letterSpacing: -0.48,
+    textAlign: "center",
+  },
+  pricePill: {
+    marginTop: 16,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 30,
+    backgroundColor: "rgba(126, 92, 217, 0.12)",
+  },
+  pricePillLabel: { fontSize: 20, fontWeight: 500, color: C.secondary, letterSpacing: -0.8 },
+  pricePillUnit: { fontSize: 20, fontWeight: 400, color: C.secondary, letterSpacing: -0.8 },
+
+  /* ── Shared section furniture ───────────────────────────────────────── */
+  content: { marginTop: BROCHURE_PAGE.blockGap, gap: BROCHURE_PAGE.sectionGap },
+  sectionHeading: {
+    fontSize: 32,
+    fontWeight: 600,
+    lineHeight: 1.2,
+    color: C.primary,
+    letterSpacing: -1.28,
+    marginBottom: 24,
+  },
+
+  /* ── Hero gallery ───────────────────────────────────────────────────── */
+  gallery: { flexDirection: "row", gap: 16, height: 550 },
+  galleryTall: { width: 417.33, height: 550, borderRadius: 16, objectFit: "cover" },
+  galleryColumn: { width: 417.33, gap: 20 },
+  galleryShort: { width: 417.33, height: 265, borderRadius: 16, objectFit: "cover" },
+
+  /* ── Overview ───────────────────────────────────────────────────────── */
+  overviewCopy: { fontSize: 20, lineHeight: 1.5, color: C.text, letterSpacing: -0.4 },
+
+  /* ── Key facts ──────────────────────────────────────────────────────── */
+  keyFacts: { flexDirection: "row", justifyContent: "space-between", paddingBottom: 24 },
+  keyFactsColumns: { flexDirection: "row", gap: 60 },
+  keyFactsLabels: { gap: 16 },
+  keyFactsValues: { gap: 16 },
+  keyFactRow: { flexDirection: "row", alignItems: "center", gap: 8, height: 30 },
+  keyFactIconBox: { width: 24, height: 24, alignItems: "center", justifyContent: "center" },
+  keyFactLabel: { fontSize: 20, color: C.text, letterSpacing: -0.4 },
+  keyFactValue: { fontSize: 20, fontWeight: 500, color: C.primary, letterSpacing: -0.8, height: 30 },
+  keyFactsImage: { width: 535, height: 293, borderRadius: 16, objectFit: "cover" },
+
+  /* ── Pricing ────────────────────────────────────────────────────────── */
+  priceRow: { flexDirection: "row", gap: 20 },
+  priceCard: {
+    flexGrow: 1,
+    flexBasis: 0,
+    backgroundColor: C.white,
+    borderWidth: 1,
+    borderColor: C.stroke,
+    borderRadius: 8,
+  },
+  priceCardLabel: {
+    paddingTop: 32,
+    paddingBottom: 12,
+    paddingHorizontal: 24,
+    fontSize: 18,
+    lineHeight: 1.111,
+    color: C.text,
+    letterSpacing: -0.54,
+  },
+  priceCardValue: {
+    paddingBottom: 32,
+    paddingHorizontal: 24,
+    fontSize: 28,
+    fontWeight: 500,
+    lineHeight: 0.857,
+    color: C.secondary,
+    letterSpacing: -0.42,
+  },
+
+  /* ── Itinerary ──────────────────────────────────────────────────────── */
+  dayList: { gap: 60, marginHorizontal: 29 },
+  day: { flexDirection: "row", justifyContent: "space-between" },
+  dayAside: { width: 358 },
+  dayIndex: {
+    fontSize: 52,
+    fontWeight: 700,
+    color: "rgba(126, 92, 217, 0.16)",
+    letterSpacing: 1.04,
+    marginBottom: -18,
+  },
+  dayTitle: { fontSize: 22, fontWeight: 500, lineHeight: 1.045, color: C.violet, letterSpacing: -0.88 },
+  dayDuration: { marginTop: 8, fontSize: 14, color: C.text, letterSpacing: -0.56 },
+  dayCard: {
+    width: 822,
+    borderWidth: 1,
+    borderColor: C.stroke,
+    borderRadius: 8,
+    padding: 24,
+    gap: 20,
+  },
+  dayBlock: { gap: 16 },
+  dayBlockLabel: { fontSize: 18, fontWeight: 500, color: C.primary, letterSpacing: -0.72 },
+  dayCopy: { fontSize: 16, lineHeight: 1.5, color: C.text, letterSpacing: -0.32 },
+  dayMetaRow: { flexDirection: "row", alignItems: "center", gap: 8 },
+  dayMetaItem: { flexDirection: "row", alignItems: "center", gap: 5 },
+  dayMetaText: { fontSize: 16, fontWeight: 500, color: C.text, letterSpacing: -0.32 },
+  separatorDot: { width: 4, height: 4, borderRadius: 2, backgroundColor: C.text },
+  meterTrack: { width: 140, height: 8, borderRadius: 4, backgroundColor: C.stroke },
+  meterFill: { height: 8, borderRadius: 4, backgroundColor: C.success },
+
+  stopRow: { flexDirection: "row", gap: 20 },
+  stopGutter: { flexDirection: "row", gap: 8, alignSelf: "stretch" },
+  stopOrdinalBox: { width: 50, paddingBottom: 16, justifyContent: "center" },
+  stopOrdinal: { fontSize: 14, color: C.text, letterSpacing: -0.56 },
+  stopMarkerColumn: { width: 16, alignItems: "center", alignSelf: "stretch" },
+  stopMarker: {
+    width: 16,
+    height: 16,
+    borderRadius: 8,
+    borderWidth: 1.5,
+    borderColor: C.secondary,
+    backgroundColor: C.white,
+  },
+  stopConnector: { width: 1.5, flexGrow: 1, backgroundColor: C.secondary },
+  stopLabelBox: { paddingBottom: 16, justifyContent: "center" },
+  stopLabel: { fontSize: 16, fontWeight: 500, color: C.text, letterSpacing: -0.64 },
+
+  chipRow: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
+  chip: {
+    backgroundColor: C.background,
+    borderRadius: 4,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+  },
+  chipText: { fontSize: 14, fontWeight: 500, color: C.text, letterSpacing: -0.28 },
+
+  /* ── Optional add-ons ───────────────────────────────────────────────── */
+  addonList: { gap: 32 },
+  addon: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 32,
+    padding: 24,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: C.stroke,
+    backgroundColor: C.background,
+  },
+  // The thumbnail stretches to whatever height the copy gives the card. A View
+  // wrapper (rather than a bare stretched Image) keeps that height identical
+  // between the measurement pass and the final render.
+  addonThumbBox: { width: 113, alignSelf: "stretch", borderRadius: 4, overflow: "hidden", backgroundColor: C.stroke },
+  // Absolutely positioned so the photo fills the box without contributing to
+  // layout — a percentage-height Image would size itself from the intrinsic
+  // aspect ratio and make the card taller than the measurement pass predicted.
+  addonThumbImage: { position: "absolute", top: 0, left: 0, right: 0, bottom: 0, objectFit: "cover" },
+  addonBody: { flexGrow: 1, flexBasis: 0, flexDirection: "row", alignItems: "center", gap: 16 },
+  addonCopy: { flexGrow: 1, flexBasis: 0, gap: 4 },
+  addonName: { fontSize: 18, fontWeight: 500, color: C.violet, letterSpacing: -0.72 },
+  addonDescription: { fontSize: 16, lineHeight: 1.5, color: C.text, letterSpacing: -0.64 },
+  addonPriceBox: { width: 181, alignItems: "flex-end", gap: 2 },
+  addonPrice: { fontSize: 18, fontWeight: 500, color: C.secondary, letterSpacing: -0.72, textAlign: "right" },
+  addonPriceUnit: { fontSize: 14, fontWeight: 400, color: C.text },
+  addonNote: { fontSize: 14, fontStyle: "italic", color: C.muted, letterSpacing: -0.56, textAlign: "right" },
+
+  /* ── Services ───────────────────────────────────────────────────────── */
+  serviceList: { gap: 24, marginHorizontal: 29 },
+  service: { flexDirection: "row" },
+  serviceAside: { width: 460 },
+  serviceGhost: { fontSize: 52, fontWeight: 700, letterSpacing: -0.52, marginBottom: -22 },
+  serviceLabel: { fontSize: 22, fontWeight: 500, lineHeight: 1.045, letterSpacing: -0.88 },
+  servicePanel: {
+    width: 766,
+    backgroundColor: C.background,
+    borderRadius: 8,
+    paddingHorizontal: 20,
+    paddingVertical: 32,
+    gap: 16,
+  },
+  serviceCard: {
+    backgroundColor: C.white,
+    borderWidth: 1,
+    borderColor: C.stroke,
+    borderRadius: 8,
+    padding: 24,
+    gap: 4,
+  },
+  serviceCardHeading: { fontSize: 18, fontWeight: 500, letterSpacing: -0.72 },
+  serviceItem: { flexDirection: "row" },
+  serviceBullet: { width: 24, fontSize: 16, lineHeight: 1.5, color: C.text },
+  // Sits in a row next to the bullet, so flex-basis here governs width.
+  serviceItemText: { flexGrow: 1, flexBasis: 0, fontSize: 16, lineHeight: 1.5, color: C.text, letterSpacing: -0.64 },
+
+  /* ── QR code ────────────────────────────────────────────────────────── */
+  // Absolutely positioned so the centred header block is unaffected. @react-pdf
+  // resolves these offsets against the page rect rather than the padding box,
+  // so the padding is applied explicitly to line the code up with the content
+  // column instead of sitting flush against the paper edge.
+  qrBlock: {
+    position: "absolute",
+    top: BROCHURE_PAGE.paddingTop,
+    right: BROCHURE_PAGE.paddingX,
+    alignItems: "center",
+    gap: 6,
+  },
+  priceNote: { marginTop: 12, fontSize: 16, fontStyle: "italic", color: C.muted, letterSpacing: -0.32 },
+  qrCaption: { fontSize: 11, fontWeight: 500, color: C.muted, letterSpacing: -0.22 },
+
+  /* ── Footer ─────────────────────────────────────────────────────────── */
+  footer: {
+    marginTop: BROCHURE_PAGE.blockGap,
+    marginHorizontal: 2,
+    width: 1280,
+    height: 472,
+    borderRadius: 32,
+    backgroundColor: C.violetDark,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  footerInner: { width: 879, gap: 24 },
+  footerTitle: { fontSize: 40, fontWeight: 600, color: C.white, letterSpacing: -1.6, textAlign: "center" },
+  footerBody: { fontSize: 18, fontWeight: 500, color: C.footerText, letterSpacing: -0.72, textAlign: "center" },
+  footerContacts: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 12 },
+  footerContact: { flexDirection: "row", alignItems: "center", gap: 8 },
+  footerContactText: {
+    fontSize: 18,
+    fontWeight: 500,
+    color: C.footerText,
+    letterSpacing: -0.72,
+    textDecoration: "underline",
+  },
+  footerContactDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: C.footerText },
+  footerHostedBy: {
+    marginTop: 4,
+    fontSize: 18,
+    fontWeight: 500,
+    color: C.footerText,
+    letterSpacing: -0.36,
+    textAlign: "center",
+  },
+  footerTagline: { fontSize: 20, fontWeight: 600, color: C.background, letterSpacing: -0.8, textAlign: "center" },
+});
