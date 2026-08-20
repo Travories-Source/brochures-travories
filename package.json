@@ -4,13 +4,13 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "tsx watch src/server.tsx",
-    "start": "tsx src/server.tsx",
+    "dev": "tsx watch src/server.ts",
+    "start": "tsx src/server.ts",
     "typecheck": "tsc --noEmit"
   },
   "exports": {
     ".": "./src/brochure/index.ts",
-    "./server": "./src/server.tsx"
+    "./server": "./src/server.ts"
   },
   "dependencies": {
     "@react-pdf/renderer": "^4.6.1",
