@@ -69,13 +69,16 @@ async function render(body: RequestBody): Promise<{ bytes: Buffer; filename: str
   return { bytes: Buffer.from(bytes), filename };
 }
 
-export function createApp(token: string): FastifyInstance {
+export function createApp(token?: string): FastifyInstance {
   registerBrochureFonts(fontDir);
   const app = Fastify({ logger: true, bodyLimit: 2 * 1024 * 1024 });
 
   app.get("/health", async () => ({ ok: true }));
 
   app.post<{ Body: RequestBody }>("/v1/package-brochures", async (request, reply) => {
+    if (!token) {
+      return reply.code(503).send({ error: "Brochure service is not configured" });
+    }
     const receivedToken = request.headers["x-brochure-service-token"];
     if (!isAuthorized(Array.isArray(receivedToken) ? receivedToken[0] : receivedToken, token)) {
       return reply.code(401).send({ error: "Unauthorized" });

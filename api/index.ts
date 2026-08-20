@@ -1,9 +1,6 @@
 import { createApp } from "../src/server";
 
-const token = process.env.BROCHURE_SERVICE_TOKEN;
-if (!token) throw new Error("BROCHURE_SERVICE_TOKEN must be set");
-
-const app = createApp(token);
+const app = createApp(process.env.BROCHURE_SERVICE_TOKEN);
 let ready: Promise<void> | undefined;
 
 /** Vercel Node.js function adapter for the Fastify application. */
