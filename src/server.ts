@@ -57,16 +57,14 @@ async function render(body: RequestBody): Promise<{ bytes: Buffer; filename: str
   // The layout was designed as a continuous brochure. Server rendering uses a
   // generous page height; a later pagination pass can be introduced without
   // changing either client application's integration.
-  const document = (
-    <PackageBrochureDocument
-      model={model}
-      images={images}
-      height={40_000}
-      qr={null}
-      packageUrl={body.packageUrl ?? null}
-    />
-  );
-  const bytes = await renderToBuffer(document);
+  const document = React.createElement(PackageBrochureDocument, {
+    model,
+    images,
+    height: 40_000,
+    qr: null,
+    packageUrl: body.packageUrl ?? null,
+  });
+  const bytes = await renderToBuffer(document as any);
   const filename = `${model.title.replace(/[^\w\s-]/g, "").trim().replace(/\s+/g, "-").slice(0, 80) || "package"}.pdf`;
   return { bytes: Buffer.from(bytes), filename };
 }
