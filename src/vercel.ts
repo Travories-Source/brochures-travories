@@ -9,7 +9,7 @@ import { countPdfPages, fitToOnePage } from "./brochure/pageFit.js";
 import type { BrochureParty } from "./brochure/party.js";
 import { buildQrMatrix } from "./brochure/qr.js";
 import type { BrochurePackageSource } from "./brochure/source.js";
-import { BROCHURE_A4_LANDSCAPE_HEIGHT } from "./brochure/theme.js";
+import { BROCHURE_A4_PAGE_HEIGHT } from "./brochure/theme.js";
 
 const MAX_IMAGE_BYTES = 12 * 1024 * 1024;
 registerBrochureFonts(join(process.cwd(), "assets", "fonts", "brochure"));
@@ -59,7 +59,7 @@ const render = async (body: RequestBody) => {
   // Paginated output has a page height by definition; continuous has to be
   // solved for. See ./brochure/pageFit.ts.
   const { output: pdf } = paged
-    ? await renderAt(BROCHURE_A4_LANDSCAPE_HEIGHT)
+    ? await renderAt(BROCHURE_A4_PAGE_HEIGHT)
     : await fitToOnePage(renderAt);
   const name = model.title.replace(/[^\w\s-]/g, "").trim().replace(/\s+/g, "-").slice(0, 80) || "package";
   return { pdf, name };

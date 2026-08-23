@@ -194179,7 +194179,7 @@ var BROCHURE_PAGE = {
   /** Gap between the header block, the content column and the footer. */
   blockGap: 80
 };
-var BROCHURE_A4_LANDSCAPE_HEIGHT = BROCHURE_PAGE.width * 210 / 297;
+var BROCHURE_A4_PAGE_HEIGHT = BROCHURE_PAGE.width * 297 / 210;
 var BROCHURE_COLOR = {
   /** Section headings and day-card labels. */
   primary: "#5b4d81",
@@ -195375,7 +195375,7 @@ var render3 = async (body) => {
     const output = Buffer.from(await renderToBuffer(document2));
     return { output, pages: countPdfPages(output) };
   };
-  const { output: pdf2 } = paged ? await renderAt(BROCHURE_A4_LANDSCAPE_HEIGHT) : await fitToOnePage(renderAt);
+  const { output: pdf2 } = paged ? await renderAt(BROCHURE_A4_PAGE_HEIGHT) : await fitToOnePage(renderAt);
   const name = model.title.replace(/[^\w\s-]/g, "").trim().replace(/\s+/g, "-").slice(0, 80) || "package";
   return { pdf: pdf2, name };
 };
