@@ -194447,10 +194447,28 @@ var styles = StyleSheet.create({
     // the same width whatever the caption says.
     width: BROCHURE_PAGE.qrSize,
     alignItems: "center",
-    gap: 6
+    gap: 6,
+    // @react-pdf underlines every descendant of a <Link>, and a child style
+    // cannot take it back — only the Link's own style can. Cleared here so the
+    // underline can be put where it belongs, on `qrActionLabel`.
+    textDecoration: "none"
   },
   priceNote: { marginTop: 12, fontSize: 16, fontStyle: "italic", color: BROCHURE_COLOR.muted, letterSpacing: -0.32 },
-  qrCaption: { fontSize: 11, fontWeight: 500, color: BROCHURE_COLOR.muted, letterSpacing: -0.22 },
+  /** The instruction, for someone holding a second device to scan with. */
+  qrCaption: { fontSize: 11, fontWeight: 500, color: BROCHURE_COLOR.muted, letterSpacing: -0.22, textAlign: "center" },
+  /**
+   * The tap affordance, for the reader who is *on* the phone and so cannot scan
+   * the code in front of them. Styled as a link — brand colour, underline,
+   * external-link glyph — because nothing else in a PDF signals "tappable".
+   */
+  qrAction: { flexDirection: "row", alignItems: "center", gap: 4 },
+  qrActionLabel: {
+    fontSize: 11,
+    fontWeight: 600,
+    color: BROCHURE_COLOR.secondary,
+    letterSpacing: -0.22,
+    textDecoration: "underline"
+  },
   /* ── Footer ─────────────────────────────────────────────────────────── */
   footer: {
     marginTop: BROCHURE_PAGE.blockGap,
@@ -194562,6 +194580,10 @@ var GradientText = ({
     return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Text, { style: { color: `rgb(${mix(r1, r22)}, ${mix(g1, g22)}, ${mix(b1, b22)})` }, children: token }, index2);
   }) });
 };
+var EXTERNAL_LINK = {
+  viewBox: "0 0 24 24",
+  paths: ["M15 3h6v6", "M10 14 21 3", "M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"]
+};
 var QR_SIZE = BROCHURE_PAGE.qrSize;
 var QR_QUIET_MODULES = 2;
 var QR_LOGO_RATIO = 0.24;
@@ -194613,7 +194635,22 @@ var QrCode = ({ matrix, url: url2 }) => {
         }
       ) })
     ] }),
-    /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Text, { style: styles.qrCaption, children: "Scan to view package" })
+    /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Text, { style: styles.qrCaption, children: "Scan to view package" }),
+    /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(View, { style: styles.qrAction, children: [
+      /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Text, { style: styles.qrActionLabel, children: "or tap to open" }),
+      /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Svg, { viewBox: EXTERNAL_LINK.viewBox, style: { width: 9, height: 9 }, children: EXTERNAL_LINK.paths.map((d3, index2) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(
+        Path,
+        {
+          d: d3,
+          stroke: BROCHURE_COLOR.secondary,
+          strokeWidth: 2,
+          strokeLinecap: "round",
+          strokeLinejoin: "round",
+          fill: "none"
+        },
+        index2
+      )) })
+    ] })
   ] });
 };
 var Section = ({ heading, children }) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(View, { children: [

@@ -169,6 +169,16 @@ const GradientText = ({
  * The centre knockout is safe because `buildQrMatrix` encodes at error
  * correction level H — see the note there.
  */
+/**
+ * lucide "external-link", the same source as the `travellers` and `arrival`
+ * icons in iconPaths.ts. Kept local because it belongs to the QR block rather
+ * than to the Figma icon set.
+ */
+const EXTERNAL_LINK = {
+  viewBox: "0 0 24 24",
+  paths: ["M15 3h6v6", "M10 14 21 3", "M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"],
+};
+
 const QR_SIZE = BROCHURE_PAGE.qrSize;
 const QR_QUIET_MODULES = 2;
 /** Logo box as a fraction of the symbol. Level H tolerates ~30%. */
@@ -225,6 +235,28 @@ const QrCode = ({ matrix, url }: { matrix: QrMatrix; url: string }) => {
         </View>
       </View>
       <Text style={styles.qrCaption}>Scan to view package</Text>
+
+      {/*
+       * A QR is no use to someone reading this on the phone in their hand, and
+       * the whole block is already the link target — they just have no way to
+       * know that. This line says so.
+       */}
+      <View style={styles.qrAction}>
+        <Text style={styles.qrActionLabel}>or tap to open</Text>
+        <Svg viewBox={EXTERNAL_LINK.viewBox} style={{ width: 9, height: 9 }}>
+          {EXTERNAL_LINK.paths.map((d, index) => (
+            <Path
+              key={index}
+              d={d}
+              stroke={C.secondary}
+              strokeWidth={2}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              fill="none"
+            />
+          ))}
+        </Svg>
+      </View>
     </Link>
   );
 };

@@ -251,9 +251,27 @@ export const styles = StyleSheet.create({
     width: BROCHURE_PAGE.qrSize,
     alignItems: "center",
     gap: 6,
+    // @react-pdf underlines every descendant of a <Link>, and a child style
+    // cannot take it back — only the Link's own style can. Cleared here so the
+    // underline can be put where it belongs, on `qrActionLabel`.
+    textDecoration: "none",
   },
   priceNote: { marginTop: 12, fontSize: 16, fontStyle: "italic", color: C.muted, letterSpacing: -0.32 },
-  qrCaption: { fontSize: 11, fontWeight: 500, color: C.muted, letterSpacing: -0.22 },
+  /** The instruction, for someone holding a second device to scan with. */
+  qrCaption: { fontSize: 11, fontWeight: 500, color: C.muted, letterSpacing: -0.22, textAlign: "center" },
+  /**
+   * The tap affordance, for the reader who is *on* the phone and so cannot scan
+   * the code in front of them. Styled as a link — brand colour, underline,
+   * external-link glyph — because nothing else in a PDF signals "tappable".
+   */
+  qrAction: { flexDirection: "row", alignItems: "center", gap: 4 },
+  qrActionLabel: {
+    fontSize: 11,
+    fontWeight: 600,
+    color: C.secondary,
+    letterSpacing: -0.22,
+    textDecoration: "underline",
+  },
 
   /* ── Footer ─────────────────────────────────────────────────────────── */
   footer: {
