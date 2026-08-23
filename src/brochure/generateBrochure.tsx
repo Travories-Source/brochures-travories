@@ -3,7 +3,7 @@ import { pdf } from "@react-pdf/renderer";
 import type { BrochurePackageSource } from "./source.js";
 
 import { ensureBrochureFonts } from "./fonts.js";
-import { BROCHURE_A4_LANDSCAPE_HEIGHT } from "./theme.js";
+import { BROCHURE_A4_PAGE_HEIGHT } from "./theme.js";
 import { buildBrochureModel, type BrochureModel } from "./model.js";
 import { countPdfPages, fitToOnePage } from "./pageFit.js";
 import { resolvePackageUrl } from "./packageLink.js";
@@ -170,7 +170,7 @@ export async function generatePackageBrochure(
   // Paginated output has a page height by definition, so there is nothing to
   // solve for — one render instead of the fitting pass's thirteen.
   if (options?.layout === "a4") {
-    const height = BROCHURE_A4_LANDSCAPE_HEIGHT;
+    const height = BROCHURE_A4_PAGE_HEIGHT;
     const { output: blob, pages } = await renderAt(inputs, height, true);
     return { blob, filename, height, pages };
   }

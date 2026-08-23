@@ -30,17 +30,18 @@ export const BROCHURE_PAGE = {
 } as const;
 
 /**
- * Page geometry for the two output modes.
+ * Page height when the brochure is broken into printable pages.
  *
  * The design is a fixed 1440pt-wide canvas, so a paginated page keeps that
  * width and takes A4's proportions rather than A4's literal size — printed to
  * paper it scales down uniformly and nothing in the layout has to move.
  *
- * Landscape, because the proportions decide the print size of the type: on
- * portrait A4 this canvas puts 16pt body copy on the page at 6.6pt, which is
- * below readable. Landscape lands it at 9.4pt.
+ * Portrait. Note what the proportions cost: 1440pt of design width onto A4's
+ * 595pt scales everything by 0.41, so 16pt body copy reaches paper at 6.6pt.
+ * That is small for A4 — printing to A3, or reading on screen, gives 9.4pt.
+ * Landscape would invert the trade, roughly halving the content per sheet.
  */
-export const BROCHURE_A4_LANDSCAPE_HEIGHT = (BROCHURE_PAGE.width * 210) / 297;
+export const BROCHURE_A4_PAGE_HEIGHT = (BROCHURE_PAGE.width * 297) / 210;
 
 export const BROCHURE_COLOR = {
   /** Section headings and day-card labels. */
