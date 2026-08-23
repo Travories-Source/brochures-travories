@@ -10,6 +10,7 @@ import { registerBrochureFonts } from "./brochure/fonts.js";
 import { buildBrochureModel } from "./brochure/model.js";
 import { countPdfPages, fitToOnePage } from "./brochure/pageFit.js";
 import type { BrochureParty } from "./brochure/party.js";
+import { buildQrMatrix } from "./brochure/qr.js";
 import type { BrochurePackageSource } from "./brochure/source.js";
 
 const MAX_IMAGE_BYTES = 12 * 1024 * 1024;
@@ -55,6 +56,13 @@ const isAuthorized = (received: string | undefined, expected: string) => {
 async function render(body: RequestBody): Promise<{ bytes: Buffer; filename: string }> {
   const model = buildBrochureModel(body.package, body.party);
   const images = await loadImages(model.imageUrls);
+
+  // Callers decide QR eligibility, because only they know the package's status:
+  // a code is sent only for packages that have a public page to scan through
+  // to. A URL here therefore always means "draw the code".
+  const packageUrl = body.packageUrl?.trim() || null;
+  const qr = packageUrl ? buildQrMatrix(packageUrl) : null;
+
   // The layout is one continuous canvas, so the page has to be trimmed to the
   // content: rendering at a fixed generous height leaves tens of thousands of
   // points of blank page below the brochure.
@@ -63,8 +71,8 @@ async function render(body: RequestBody): Promise<{ bytes: Buffer; filename: str
       model,
       images,
       height,
-      qr: null,
-      packageUrl: body.packageUrl ?? null,
+      qr,
+      packageUrl,
     });
     const output = Buffer.from(await renderToBuffer(document as any));
     return { output, pages: countPdfPages(output) };

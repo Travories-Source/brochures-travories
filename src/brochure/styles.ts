@@ -4,6 +4,17 @@ import { BROCHURE_COLOR as C, BROCHURE_FONT, BROCHURE_PAGE } from "./theme.js";
 
 const sans = BROCHURE_FONT.sans;
 
+/** Figma's header title column, centred in the 1284pt content column. */
+const TITLE_BLOCK_WIDTH = 1107;
+
+/**
+ * Same column, shrunk on both sides by the width of the QR corner plus a
+ * breathing gap, so it remains centred on the page while clearing the code.
+ */
+const TITLE_QR_GAP = 32;
+const TITLE_BLOCK_WIDTH_WITH_QR =
+  BROCHURE_PAGE.width - 2 * (BROCHURE_PAGE.paddingX + BROCHURE_PAGE.qrSize + TITLE_QR_GAP);
+
 /**
  * Every measurement is in Figma px, which map 1:1 to PDF points because the
  * page is emitted at the frame's own 1440pt width.
@@ -24,7 +35,14 @@ export const styles = StyleSheet.create({
   /* ── Header ─────────────────────────────────────────────────────────── */
   header: { alignItems: "center", gap: 40 },
   brandRow: { flexDirection: "row", alignItems: "center", gap: 12, height: 34 },
-  titleBlock: { alignItems: "center", gap: 16, width: 1107 },
+  titleBlock: { alignItems: "center", gap: 16, width: TITLE_BLOCK_WIDTH },
+  /**
+   * The QR sits in the top-right corner outside the flow, so a full-width title
+   * runs straight underneath it. Narrowing the block by the corner it has to
+   * clear — on both sides, so the title stays centred on the page — makes long
+   * titles wrap before they reach the code instead of colliding with it.
+   */
+  titleBlockWithQr: { width: TITLE_BLOCK_WIDTH_WITH_QR },
   subtitle: {
     fontSize: 24,
     fontStyle: "italic",
@@ -228,6 +246,9 @@ export const styles = StyleSheet.create({
     position: "absolute",
     top: BROCHURE_PAGE.paddingTop,
     right: BROCHURE_PAGE.paddingX,
+    // Fixed rather than shrink-wrapped, so the corner the title has to clear is
+    // the same width whatever the caption says.
+    width: BROCHURE_PAGE.qrSize,
     alignItems: "center",
     gap: 6,
   },

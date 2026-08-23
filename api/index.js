@@ -136038,6 +136038,4539 @@ var require_jsx_runtime = __commonJS({
   }
 });
 
+// node_modules/qrcode/lib/can-promise.js
+var require_can_promise = __commonJS({
+  "node_modules/qrcode/lib/can-promise.js"(exports2, module2) {
+    module2.exports = function() {
+      return typeof Promise === "function" && Promise.prototype && Promise.prototype.then;
+    };
+  }
+});
+
+// node_modules/qrcode/lib/core/utils.js
+var require_utils = __commonJS({
+  "node_modules/qrcode/lib/core/utils.js"(exports2) {
+    var toSJISFunction;
+    var CODEWORDS_COUNT = [
+      0,
+      // Not used
+      26,
+      44,
+      70,
+      100,
+      134,
+      172,
+      196,
+      242,
+      292,
+      346,
+      404,
+      466,
+      532,
+      581,
+      655,
+      733,
+      815,
+      901,
+      991,
+      1085,
+      1156,
+      1258,
+      1364,
+      1474,
+      1588,
+      1706,
+      1828,
+      1921,
+      2051,
+      2185,
+      2323,
+      2465,
+      2611,
+      2761,
+      2876,
+      3034,
+      3196,
+      3362,
+      3532,
+      3706
+    ];
+    exports2.getSymbolSize = function getSymbolSize(version2) {
+      if (!version2) throw new Error('"version" cannot be null or undefined');
+      if (version2 < 1 || version2 > 40) throw new Error('"version" should be in range from 1 to 40');
+      return version2 * 4 + 17;
+    };
+    exports2.getSymbolTotalCodewords = function getSymbolTotalCodewords(version2) {
+      return CODEWORDS_COUNT[version2];
+    };
+    exports2.getBCHDigit = function(data) {
+      let digit = 0;
+      while (data !== 0) {
+        digit++;
+        data >>>= 1;
+      }
+      return digit;
+    };
+    exports2.setToSJISFunction = function setToSJISFunction(f4) {
+      if (typeof f4 !== "function") {
+        throw new Error('"toSJISFunc" is not a valid function.');
+      }
+      toSJISFunction = f4;
+    };
+    exports2.isKanjiModeEnabled = function() {
+      return typeof toSJISFunction !== "undefined";
+    };
+    exports2.toSJIS = function toSJIS(kanji) {
+      return toSJISFunction(kanji);
+    };
+  }
+});
+
+// node_modules/qrcode/lib/core/error-correction-level.js
+var require_error_correction_level = __commonJS({
+  "node_modules/qrcode/lib/core/error-correction-level.js"(exports2) {
+    exports2.L = { bit: 1 };
+    exports2.M = { bit: 0 };
+    exports2.Q = { bit: 3 };
+    exports2.H = { bit: 2 };
+    function fromString(string) {
+      if (typeof string !== "string") {
+        throw new Error("Param is not a string");
+      }
+      const lcStr = string.toLowerCase();
+      switch (lcStr) {
+        case "l":
+        case "low":
+          return exports2.L;
+        case "m":
+        case "medium":
+          return exports2.M;
+        case "q":
+        case "quartile":
+          return exports2.Q;
+        case "h":
+        case "high":
+          return exports2.H;
+        default:
+          throw new Error("Unknown EC Level: " + string);
+      }
+    }
+    exports2.isValid = function isValid(level) {
+      return level && typeof level.bit !== "undefined" && level.bit >= 0 && level.bit < 4;
+    };
+    exports2.from = function from(value2, defaultValue) {
+      if (exports2.isValid(value2)) {
+        return value2;
+      }
+      try {
+        return fromString(value2);
+      } catch (e4) {
+        return defaultValue;
+      }
+    };
+  }
+});
+
+// node_modules/qrcode/lib/core/bit-buffer.js
+var require_bit_buffer = __commonJS({
+  "node_modules/qrcode/lib/core/bit-buffer.js"(exports2, module2) {
+    function BitBuffer() {
+      this.buffer = [];
+      this.length = 0;
+    }
+    BitBuffer.prototype = {
+      get: function(index2) {
+        const bufIndex = Math.floor(index2 / 8);
+        return (this.buffer[bufIndex] >>> 7 - index2 % 8 & 1) === 1;
+      },
+      put: function(num, length2) {
+        for (let i4 = 0; i4 < length2; i4++) {
+          this.putBit((num >>> length2 - i4 - 1 & 1) === 1);
+        }
+      },
+      getLengthInBits: function() {
+        return this.length;
+      },
+      putBit: function(bit) {
+        const bufIndex = Math.floor(this.length / 8);
+        if (this.buffer.length <= bufIndex) {
+          this.buffer.push(0);
+        }
+        if (bit) {
+          this.buffer[bufIndex] |= 128 >>> this.length % 8;
+        }
+        this.length++;
+      }
+    };
+    module2.exports = BitBuffer;
+  }
+});
+
+// node_modules/qrcode/lib/core/bit-matrix.js
+var require_bit_matrix = __commonJS({
+  "node_modules/qrcode/lib/core/bit-matrix.js"(exports2, module2) {
+    function BitMatrix(size) {
+      if (!size || size < 1) {
+        throw new Error("BitMatrix size must be defined and greater than 0");
+      }
+      this.size = size;
+      this.data = new Uint8Array(size * size);
+      this.reservedBit = new Uint8Array(size * size);
+    }
+    BitMatrix.prototype.set = function(row, col, value2, reserved) {
+      const index2 = row * this.size + col;
+      this.data[index2] = value2;
+      if (reserved) this.reservedBit[index2] = true;
+    };
+    BitMatrix.prototype.get = function(row, col) {
+      return this.data[row * this.size + col];
+    };
+    BitMatrix.prototype.xor = function(row, col, value2) {
+      this.data[row * this.size + col] ^= value2;
+    };
+    BitMatrix.prototype.isReserved = function(row, col) {
+      return this.reservedBit[row * this.size + col];
+    };
+    module2.exports = BitMatrix;
+  }
+});
+
+// node_modules/qrcode/lib/core/alignment-pattern.js
+var require_alignment_pattern = __commonJS({
+  "node_modules/qrcode/lib/core/alignment-pattern.js"(exports2) {
+    var getSymbolSize = require_utils().getSymbolSize;
+    exports2.getRowColCoords = function getRowColCoords(version2) {
+      if (version2 === 1) return [];
+      const posCount = Math.floor(version2 / 7) + 2;
+      const size = getSymbolSize(version2);
+      const intervals = size === 145 ? 26 : Math.ceil((size - 13) / (2 * posCount - 2)) * 2;
+      const positions = [size - 7];
+      for (let i4 = 1; i4 < posCount - 1; i4++) {
+        positions[i4] = positions[i4 - 1] - intervals;
+      }
+      positions.push(6);
+      return positions.reverse();
+    };
+    exports2.getPositions = function getPositions(version2) {
+      const coords = [];
+      const pos = exports2.getRowColCoords(version2);
+      const posLength = pos.length;
+      for (let i4 = 0; i4 < posLength; i4++) {
+        for (let j = 0; j < posLength; j++) {
+          if (i4 === 0 && j === 0 || // top-left
+          i4 === 0 && j === posLength - 1 || // bottom-left
+          i4 === posLength - 1 && j === 0) {
+            continue;
+          }
+          coords.push([pos[i4], pos[j]]);
+        }
+      }
+      return coords;
+    };
+  }
+});
+
+// node_modules/qrcode/lib/core/finder-pattern.js
+var require_finder_pattern = __commonJS({
+  "node_modules/qrcode/lib/core/finder-pattern.js"(exports2) {
+    var getSymbolSize = require_utils().getSymbolSize;
+    var FINDER_PATTERN_SIZE = 7;
+    exports2.getPositions = function getPositions(version2) {
+      const size = getSymbolSize(version2);
+      return [
+        // top-left
+        [0, 0],
+        // top-right
+        [size - FINDER_PATTERN_SIZE, 0],
+        // bottom-left
+        [0, size - FINDER_PATTERN_SIZE]
+      ];
+    };
+  }
+});
+
+// node_modules/qrcode/lib/core/mask-pattern.js
+var require_mask_pattern = __commonJS({
+  "node_modules/qrcode/lib/core/mask-pattern.js"(exports2) {
+    exports2.Patterns = {
+      PATTERN000: 0,
+      PATTERN001: 1,
+      PATTERN010: 2,
+      PATTERN011: 3,
+      PATTERN100: 4,
+      PATTERN101: 5,
+      PATTERN110: 6,
+      PATTERN111: 7
+    };
+    var PenaltyScores = {
+      N1: 3,
+      N2: 3,
+      N3: 40,
+      N4: 10
+    };
+    exports2.isValid = function isValid(mask) {
+      return mask != null && mask !== "" && !isNaN(mask) && mask >= 0 && mask <= 7;
+    };
+    exports2.from = function from(value2) {
+      return exports2.isValid(value2) ? parseInt(value2, 10) : void 0;
+    };
+    exports2.getPenaltyN1 = function getPenaltyN1(data) {
+      const size = data.size;
+      let points = 0;
+      let sameCountCol = 0;
+      let sameCountRow = 0;
+      let lastCol = null;
+      let lastRow = null;
+      for (let row = 0; row < size; row++) {
+        sameCountCol = sameCountRow = 0;
+        lastCol = lastRow = null;
+        for (let col = 0; col < size; col++) {
+          let module3 = data.get(row, col);
+          if (module3 === lastCol) {
+            sameCountCol++;
+          } else {
+            if (sameCountCol >= 5) points += PenaltyScores.N1 + (sameCountCol - 5);
+            lastCol = module3;
+            sameCountCol = 1;
+          }
+          module3 = data.get(col, row);
+          if (module3 === lastRow) {
+            sameCountRow++;
+          } else {
+            if (sameCountRow >= 5) points += PenaltyScores.N1 + (sameCountRow - 5);
+            lastRow = module3;
+            sameCountRow = 1;
+          }
+        }
+        if (sameCountCol >= 5) points += PenaltyScores.N1 + (sameCountCol - 5);
+        if (sameCountRow >= 5) points += PenaltyScores.N1 + (sameCountRow - 5);
+      }
+      return points;
+    };
+    exports2.getPenaltyN2 = function getPenaltyN2(data) {
+      const size = data.size;
+      let points = 0;
+      for (let row = 0; row < size - 1; row++) {
+        for (let col = 0; col < size - 1; col++) {
+          const last3 = data.get(row, col) + data.get(row, col + 1) + data.get(row + 1, col) + data.get(row + 1, col + 1);
+          if (last3 === 4 || last3 === 0) points++;
+        }
+      }
+      return points * PenaltyScores.N2;
+    };
+    exports2.getPenaltyN3 = function getPenaltyN3(data) {
+      const size = data.size;
+      let points = 0;
+      let bitsCol = 0;
+      let bitsRow = 0;
+      for (let row = 0; row < size; row++) {
+        bitsCol = bitsRow = 0;
+        for (let col = 0; col < size; col++) {
+          bitsCol = bitsCol << 1 & 2047 | data.get(row, col);
+          if (col >= 10 && (bitsCol === 1488 || bitsCol === 93)) points++;
+          bitsRow = bitsRow << 1 & 2047 | data.get(col, row);
+          if (col >= 10 && (bitsRow === 1488 || bitsRow === 93)) points++;
+        }
+      }
+      return points * PenaltyScores.N3;
+    };
+    exports2.getPenaltyN4 = function getPenaltyN4(data) {
+      let darkCount = 0;
+      const modulesCount = data.data.length;
+      for (let i4 = 0; i4 < modulesCount; i4++) darkCount += data.data[i4];
+      const k3 = Math.abs(Math.ceil(darkCount * 100 / modulesCount / 5) - 10);
+      return k3 * PenaltyScores.N4;
+    };
+    function getMaskAt(maskPattern, i4, j) {
+      switch (maskPattern) {
+        case exports2.Patterns.PATTERN000:
+          return (i4 + j) % 2 === 0;
+        case exports2.Patterns.PATTERN001:
+          return i4 % 2 === 0;
+        case exports2.Patterns.PATTERN010:
+          return j % 3 === 0;
+        case exports2.Patterns.PATTERN011:
+          return (i4 + j) % 3 === 0;
+        case exports2.Patterns.PATTERN100:
+          return (Math.floor(i4 / 2) + Math.floor(j / 3)) % 2 === 0;
+        case exports2.Patterns.PATTERN101:
+          return i4 * j % 2 + i4 * j % 3 === 0;
+        case exports2.Patterns.PATTERN110:
+          return (i4 * j % 2 + i4 * j % 3) % 2 === 0;
+        case exports2.Patterns.PATTERN111:
+          return (i4 * j % 3 + (i4 + j) % 2) % 2 === 0;
+        default:
+          throw new Error("bad maskPattern:" + maskPattern);
+      }
+    }
+    exports2.applyMask = function applyMask(pattern3, data) {
+      const size = data.size;
+      for (let col = 0; col < size; col++) {
+        for (let row = 0; row < size; row++) {
+          if (data.isReserved(row, col)) continue;
+          data.xor(row, col, getMaskAt(pattern3, row, col));
+        }
+      }
+    };
+    exports2.getBestMask = function getBestMask(data, setupFormatFunc) {
+      const numPatterns = Object.keys(exports2.Patterns).length;
+      let bestPattern = 0;
+      let lowerPenalty = Infinity;
+      for (let p3 = 0; p3 < numPatterns; p3++) {
+        setupFormatFunc(p3);
+        exports2.applyMask(p3, data);
+        const penalty = exports2.getPenaltyN1(data) + exports2.getPenaltyN2(data) + exports2.getPenaltyN3(data) + exports2.getPenaltyN4(data);
+        exports2.applyMask(p3, data);
+        if (penalty < lowerPenalty) {
+          lowerPenalty = penalty;
+          bestPattern = p3;
+        }
+      }
+      return bestPattern;
+    };
+  }
+});
+
+// node_modules/qrcode/lib/core/error-correction-code.js
+var require_error_correction_code = __commonJS({
+  "node_modules/qrcode/lib/core/error-correction-code.js"(exports2) {
+    var ECLevel = require_error_correction_level();
+    var EC_BLOCKS_TABLE = [
+      // L  M  Q  H
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      2,
+      2,
+      1,
+      2,
+      2,
+      4,
+      1,
+      2,
+      4,
+      4,
+      2,
+      4,
+      4,
+      4,
+      2,
+      4,
+      6,
+      5,
+      2,
+      4,
+      6,
+      6,
+      2,
+      5,
+      8,
+      8,
+      4,
+      5,
+      8,
+      8,
+      4,
+      5,
+      8,
+      11,
+      4,
+      8,
+      10,
+      11,
+      4,
+      9,
+      12,
+      16,
+      4,
+      9,
+      16,
+      16,
+      6,
+      10,
+      12,
+      18,
+      6,
+      10,
+      17,
+      16,
+      6,
+      11,
+      16,
+      19,
+      6,
+      13,
+      18,
+      21,
+      7,
+      14,
+      21,
+      25,
+      8,
+      16,
+      20,
+      25,
+      8,
+      17,
+      23,
+      25,
+      9,
+      17,
+      23,
+      34,
+      9,
+      18,
+      25,
+      30,
+      10,
+      20,
+      27,
+      32,
+      12,
+      21,
+      29,
+      35,
+      12,
+      23,
+      34,
+      37,
+      12,
+      25,
+      34,
+      40,
+      13,
+      26,
+      35,
+      42,
+      14,
+      28,
+      38,
+      45,
+      15,
+      29,
+      40,
+      48,
+      16,
+      31,
+      43,
+      51,
+      17,
+      33,
+      45,
+      54,
+      18,
+      35,
+      48,
+      57,
+      19,
+      37,
+      51,
+      60,
+      19,
+      38,
+      53,
+      63,
+      20,
+      40,
+      56,
+      66,
+      21,
+      43,
+      59,
+      70,
+      22,
+      45,
+      62,
+      74,
+      24,
+      47,
+      65,
+      77,
+      25,
+      49,
+      68,
+      81
+    ];
+    var EC_CODEWORDS_TABLE = [
+      // L  M  Q  H
+      7,
+      10,
+      13,
+      17,
+      10,
+      16,
+      22,
+      28,
+      15,
+      26,
+      36,
+      44,
+      20,
+      36,
+      52,
+      64,
+      26,
+      48,
+      72,
+      88,
+      36,
+      64,
+      96,
+      112,
+      40,
+      72,
+      108,
+      130,
+      48,
+      88,
+      132,
+      156,
+      60,
+      110,
+      160,
+      192,
+      72,
+      130,
+      192,
+      224,
+      80,
+      150,
+      224,
+      264,
+      96,
+      176,
+      260,
+      308,
+      104,
+      198,
+      288,
+      352,
+      120,
+      216,
+      320,
+      384,
+      132,
+      240,
+      360,
+      432,
+      144,
+      280,
+      408,
+      480,
+      168,
+      308,
+      448,
+      532,
+      180,
+      338,
+      504,
+      588,
+      196,
+      364,
+      546,
+      650,
+      224,
+      416,
+      600,
+      700,
+      224,
+      442,
+      644,
+      750,
+      252,
+      476,
+      690,
+      816,
+      270,
+      504,
+      750,
+      900,
+      300,
+      560,
+      810,
+      960,
+      312,
+      588,
+      870,
+      1050,
+      336,
+      644,
+      952,
+      1110,
+      360,
+      700,
+      1020,
+      1200,
+      390,
+      728,
+      1050,
+      1260,
+      420,
+      784,
+      1140,
+      1350,
+      450,
+      812,
+      1200,
+      1440,
+      480,
+      868,
+      1290,
+      1530,
+      510,
+      924,
+      1350,
+      1620,
+      540,
+      980,
+      1440,
+      1710,
+      570,
+      1036,
+      1530,
+      1800,
+      570,
+      1064,
+      1590,
+      1890,
+      600,
+      1120,
+      1680,
+      1980,
+      630,
+      1204,
+      1770,
+      2100,
+      660,
+      1260,
+      1860,
+      2220,
+      720,
+      1316,
+      1950,
+      2310,
+      750,
+      1372,
+      2040,
+      2430
+    ];
+    exports2.getBlocksCount = function getBlocksCount(version2, errorCorrectionLevel) {
+      switch (errorCorrectionLevel) {
+        case ECLevel.L:
+          return EC_BLOCKS_TABLE[(version2 - 1) * 4 + 0];
+        case ECLevel.M:
+          return EC_BLOCKS_TABLE[(version2 - 1) * 4 + 1];
+        case ECLevel.Q:
+          return EC_BLOCKS_TABLE[(version2 - 1) * 4 + 2];
+        case ECLevel.H:
+          return EC_BLOCKS_TABLE[(version2 - 1) * 4 + 3];
+        default:
+          return void 0;
+      }
+    };
+    exports2.getTotalCodewordsCount = function getTotalCodewordsCount(version2, errorCorrectionLevel) {
+      switch (errorCorrectionLevel) {
+        case ECLevel.L:
+          return EC_CODEWORDS_TABLE[(version2 - 1) * 4 + 0];
+        case ECLevel.M:
+          return EC_CODEWORDS_TABLE[(version2 - 1) * 4 + 1];
+        case ECLevel.Q:
+          return EC_CODEWORDS_TABLE[(version2 - 1) * 4 + 2];
+        case ECLevel.H:
+          return EC_CODEWORDS_TABLE[(version2 - 1) * 4 + 3];
+        default:
+          return void 0;
+      }
+    };
+  }
+});
+
+// node_modules/qrcode/lib/core/galois-field.js
+var require_galois_field = __commonJS({
+  "node_modules/qrcode/lib/core/galois-field.js"(exports2) {
+    var EXP_TABLE = new Uint8Array(512);
+    var LOG_TABLE = new Uint8Array(256);
+    (function initTables() {
+      let x = 1;
+      for (let i4 = 0; i4 < 255; i4++) {
+        EXP_TABLE[i4] = x;
+        LOG_TABLE[x] = i4;
+        x <<= 1;
+        if (x & 256) {
+          x ^= 285;
+        }
+      }
+      for (let i4 = 255; i4 < 512; i4++) {
+        EXP_TABLE[i4] = EXP_TABLE[i4 - 255];
+      }
+    })();
+    exports2.log = function log(n5) {
+      if (n5 < 1) throw new Error("log(" + n5 + ")");
+      return LOG_TABLE[n5];
+    };
+    exports2.exp = function exp(n5) {
+      return EXP_TABLE[n5];
+    };
+    exports2.mul = function mul3(x, y3) {
+      if (x === 0 || y3 === 0) return 0;
+      return EXP_TABLE[LOG_TABLE[x] + LOG_TABLE[y3]];
+    };
+  }
+});
+
+// node_modules/qrcode/lib/core/polynomial.js
+var require_polynomial = __commonJS({
+  "node_modules/qrcode/lib/core/polynomial.js"(exports2) {
+    var GF = require_galois_field();
+    exports2.mul = function mul3(p1, p22) {
+      const coeff = new Uint8Array(p1.length + p22.length - 1);
+      for (let i4 = 0; i4 < p1.length; i4++) {
+        for (let j = 0; j < p22.length; j++) {
+          coeff[i4 + j] ^= GF.mul(p1[i4], p22[j]);
+        }
+      }
+      return coeff;
+    };
+    exports2.mod = function mod(divident, divisor) {
+      let result = new Uint8Array(divident);
+      while (result.length - divisor.length >= 0) {
+        const coeff = result[0];
+        for (let i4 = 0; i4 < divisor.length; i4++) {
+          result[i4] ^= GF.mul(divisor[i4], coeff);
+        }
+        let offset2 = 0;
+        while (offset2 < result.length && result[offset2] === 0) offset2++;
+        result = result.slice(offset2);
+      }
+      return result;
+    };
+    exports2.generateECPolynomial = function generateECPolynomial(degree) {
+      let poly = new Uint8Array([1]);
+      for (let i4 = 0; i4 < degree; i4++) {
+        poly = exports2.mul(poly, new Uint8Array([1, GF.exp(i4)]));
+      }
+      return poly;
+    };
+  }
+});
+
+// node_modules/qrcode/lib/core/reed-solomon-encoder.js
+var require_reed_solomon_encoder = __commonJS({
+  "node_modules/qrcode/lib/core/reed-solomon-encoder.js"(exports2, module2) {
+    var Polynomial = require_polynomial();
+    function ReedSolomonEncoder(degree) {
+      this.genPoly = void 0;
+      this.degree = degree;
+      if (this.degree) this.initialize(this.degree);
+    }
+    ReedSolomonEncoder.prototype.initialize = function initialize(degree) {
+      this.degree = degree;
+      this.genPoly = Polynomial.generateECPolynomial(this.degree);
+    };
+    ReedSolomonEncoder.prototype.encode = function encode(data) {
+      if (!this.genPoly) {
+        throw new Error("Encoder not initialized");
+      }
+      const paddedData = new Uint8Array(data.length + this.degree);
+      paddedData.set(data);
+      const remainder = Polynomial.mod(paddedData, this.genPoly);
+      const start2 = this.degree - remainder.length;
+      if (start2 > 0) {
+        const buff = new Uint8Array(this.degree);
+        buff.set(remainder, start2);
+        return buff;
+      }
+      return remainder;
+    };
+    module2.exports = ReedSolomonEncoder;
+  }
+});
+
+// node_modules/qrcode/lib/core/version-check.js
+var require_version_check = __commonJS({
+  "node_modules/qrcode/lib/core/version-check.js"(exports2) {
+    exports2.isValid = function isValid(version2) {
+      return !isNaN(version2) && version2 >= 1 && version2 <= 40;
+    };
+  }
+});
+
+// node_modules/qrcode/lib/core/regex.js
+var require_regex = __commonJS({
+  "node_modules/qrcode/lib/core/regex.js"(exports2) {
+    var numeric = "[0-9]+";
+    var alphanumeric = "[A-Z $%*+\\-./:]+";
+    var kanji = "(?:[u3000-u303F]|[u3040-u309F]|[u30A0-u30FF]|[uFF00-uFFEF]|[u4E00-u9FAF]|[u2605-u2606]|[u2190-u2195]|u203B|[u2010u2015u2018u2019u2025u2026u201Cu201Du2225u2260]|[u0391-u0451]|[u00A7u00A8u00B1u00B4u00D7u00F7])+";
+    kanji = kanji.replace(/u/g, "\\u");
+    var byte = "(?:(?![A-Z0-9 $%*+\\-./:]|" + kanji + ")(?:.|[\r\n]))+";
+    exports2.KANJI = new RegExp(kanji, "g");
+    exports2.BYTE_KANJI = new RegExp("[^A-Z0-9 $%*+\\-./:]+", "g");
+    exports2.BYTE = new RegExp(byte, "g");
+    exports2.NUMERIC = new RegExp(numeric, "g");
+    exports2.ALPHANUMERIC = new RegExp(alphanumeric, "g");
+    var TEST_KANJI = new RegExp("^" + kanji + "$");
+    var TEST_NUMERIC = new RegExp("^" + numeric + "$");
+    var TEST_ALPHANUMERIC = new RegExp("^[A-Z0-9 $%*+\\-./:]+$");
+    exports2.testKanji = function testKanji(str) {
+      return TEST_KANJI.test(str);
+    };
+    exports2.testNumeric = function testNumeric(str) {
+      return TEST_NUMERIC.test(str);
+    };
+    exports2.testAlphanumeric = function testAlphanumeric(str) {
+      return TEST_ALPHANUMERIC.test(str);
+    };
+  }
+});
+
+// node_modules/qrcode/lib/core/mode.js
+var require_mode = __commonJS({
+  "node_modules/qrcode/lib/core/mode.js"(exports2) {
+    var VersionCheck = require_version_check();
+    var Regex = require_regex();
+    exports2.NUMERIC = {
+      id: "Numeric",
+      bit: 1 << 0,
+      ccBits: [10, 12, 14]
+    };
+    exports2.ALPHANUMERIC = {
+      id: "Alphanumeric",
+      bit: 1 << 1,
+      ccBits: [9, 11, 13]
+    };
+    exports2.BYTE = {
+      id: "Byte",
+      bit: 1 << 2,
+      ccBits: [8, 16, 16]
+    };
+    exports2.KANJI = {
+      id: "Kanji",
+      bit: 1 << 3,
+      ccBits: [8, 10, 12]
+    };
+    exports2.MIXED = {
+      bit: -1
+    };
+    exports2.getCharCountIndicator = function getCharCountIndicator(mode, version2) {
+      if (!mode.ccBits) throw new Error("Invalid mode: " + mode);
+      if (!VersionCheck.isValid(version2)) {
+        throw new Error("Invalid version: " + version2);
+      }
+      if (version2 >= 1 && version2 < 10) return mode.ccBits[0];
+      else if (version2 < 27) return mode.ccBits[1];
+      return mode.ccBits[2];
+    };
+    exports2.getBestModeForData = function getBestModeForData(dataStr) {
+      if (Regex.testNumeric(dataStr)) return exports2.NUMERIC;
+      else if (Regex.testAlphanumeric(dataStr)) return exports2.ALPHANUMERIC;
+      else if (Regex.testKanji(dataStr)) return exports2.KANJI;
+      else return exports2.BYTE;
+    };
+    exports2.toString = function toString(mode) {
+      if (mode && mode.id) return mode.id;
+      throw new Error("Invalid mode");
+    };
+    exports2.isValid = function isValid(mode) {
+      return mode && mode.bit && mode.ccBits;
+    };
+    function fromString(string) {
+      if (typeof string !== "string") {
+        throw new Error("Param is not a string");
+      }
+      const lcStr = string.toLowerCase();
+      switch (lcStr) {
+        case "numeric":
+          return exports2.NUMERIC;
+        case "alphanumeric":
+          return exports2.ALPHANUMERIC;
+        case "kanji":
+          return exports2.KANJI;
+        case "byte":
+          return exports2.BYTE;
+        default:
+          throw new Error("Unknown mode: " + string);
+      }
+    }
+    exports2.from = function from(value2, defaultValue) {
+      if (exports2.isValid(value2)) {
+        return value2;
+      }
+      try {
+        return fromString(value2);
+      } catch (e4) {
+        return defaultValue;
+      }
+    };
+  }
+});
+
+// node_modules/qrcode/lib/core/version.js
+var require_version = __commonJS({
+  "node_modules/qrcode/lib/core/version.js"(exports2) {
+    var Utils = require_utils();
+    var ECCode = require_error_correction_code();
+    var ECLevel = require_error_correction_level();
+    var Mode = require_mode();
+    var VersionCheck = require_version_check();
+    var G18 = 1 << 12 | 1 << 11 | 1 << 10 | 1 << 9 | 1 << 8 | 1 << 5 | 1 << 2 | 1 << 0;
+    var G18_BCH = Utils.getBCHDigit(G18);
+    function getBestVersionForDataLength(mode, length2, errorCorrectionLevel) {
+      for (let currentVersion = 1; currentVersion <= 40; currentVersion++) {
+        if (length2 <= exports2.getCapacity(currentVersion, errorCorrectionLevel, mode)) {
+          return currentVersion;
+        }
+      }
+      return void 0;
+    }
+    function getReservedBitsCount(mode, version2) {
+      return Mode.getCharCountIndicator(mode, version2) + 4;
+    }
+    function getTotalBitsFromDataArray(segments, version2) {
+      let totalBits = 0;
+      segments.forEach(function(data) {
+        const reservedBits = getReservedBitsCount(data.mode, version2);
+        totalBits += reservedBits + data.getBitsLength();
+      });
+      return totalBits;
+    }
+    function getBestVersionForMixedData(segments, errorCorrectionLevel) {
+      for (let currentVersion = 1; currentVersion <= 40; currentVersion++) {
+        const length2 = getTotalBitsFromDataArray(segments, currentVersion);
+        if (length2 <= exports2.getCapacity(currentVersion, errorCorrectionLevel, Mode.MIXED)) {
+          return currentVersion;
+        }
+      }
+      return void 0;
+    }
+    exports2.from = function from(value2, defaultValue) {
+      if (VersionCheck.isValid(value2)) {
+        return parseInt(value2, 10);
+      }
+      return defaultValue;
+    };
+    exports2.getCapacity = function getCapacity(version2, errorCorrectionLevel, mode) {
+      if (!VersionCheck.isValid(version2)) {
+        throw new Error("Invalid QR Code version");
+      }
+      if (typeof mode === "undefined") mode = Mode.BYTE;
+      const totalCodewords = Utils.getSymbolTotalCodewords(version2);
+      const ecTotalCodewords = ECCode.getTotalCodewordsCount(version2, errorCorrectionLevel);
+      const dataTotalCodewordsBits = (totalCodewords - ecTotalCodewords) * 8;
+      if (mode === Mode.MIXED) return dataTotalCodewordsBits;
+      const usableBits = dataTotalCodewordsBits - getReservedBitsCount(mode, version2);
+      switch (mode) {
+        case Mode.NUMERIC:
+          return Math.floor(usableBits / 10 * 3);
+        case Mode.ALPHANUMERIC:
+          return Math.floor(usableBits / 11 * 2);
+        case Mode.KANJI:
+          return Math.floor(usableBits / 13);
+        case Mode.BYTE:
+        default:
+          return Math.floor(usableBits / 8);
+      }
+    };
+    exports2.getBestVersionForData = function getBestVersionForData(data, errorCorrectionLevel) {
+      let seg;
+      const ecl = ECLevel.from(errorCorrectionLevel, ECLevel.M);
+      if (Array.isArray(data)) {
+        if (data.length > 1) {
+          return getBestVersionForMixedData(data, ecl);
+        }
+        if (data.length === 0) {
+          return 1;
+        }
+        seg = data[0];
+      } else {
+        seg = data;
+      }
+      return getBestVersionForDataLength(seg.mode, seg.getLength(), ecl);
+    };
+    exports2.getEncodedBits = function getEncodedBits(version2) {
+      if (!VersionCheck.isValid(version2) || version2 < 7) {
+        throw new Error("Invalid QR Code version");
+      }
+      let d3 = version2 << 12;
+      while (Utils.getBCHDigit(d3) - G18_BCH >= 0) {
+        d3 ^= G18 << Utils.getBCHDigit(d3) - G18_BCH;
+      }
+      return version2 << 12 | d3;
+    };
+  }
+});
+
+// node_modules/qrcode/lib/core/format-info.js
+var require_format_info = __commonJS({
+  "node_modules/qrcode/lib/core/format-info.js"(exports2) {
+    var Utils = require_utils();
+    var G15 = 1 << 10 | 1 << 8 | 1 << 5 | 1 << 4 | 1 << 2 | 1 << 1 | 1 << 0;
+    var G15_MASK = 1 << 14 | 1 << 12 | 1 << 10 | 1 << 4 | 1 << 1;
+    var G15_BCH = Utils.getBCHDigit(G15);
+    exports2.getEncodedBits = function getEncodedBits(errorCorrectionLevel, mask) {
+      const data = errorCorrectionLevel.bit << 3 | mask;
+      let d3 = data << 10;
+      while (Utils.getBCHDigit(d3) - G15_BCH >= 0) {
+        d3 ^= G15 << Utils.getBCHDigit(d3) - G15_BCH;
+      }
+      return (data << 10 | d3) ^ G15_MASK;
+    };
+  }
+});
+
+// node_modules/qrcode/lib/core/numeric-data.js
+var require_numeric_data = __commonJS({
+  "node_modules/qrcode/lib/core/numeric-data.js"(exports2, module2) {
+    var Mode = require_mode();
+    function NumericData(data) {
+      this.mode = Mode.NUMERIC;
+      this.data = data.toString();
+    }
+    NumericData.getBitsLength = function getBitsLength(length2) {
+      return 10 * Math.floor(length2 / 3) + (length2 % 3 ? length2 % 3 * 3 + 1 : 0);
+    };
+    NumericData.prototype.getLength = function getLength() {
+      return this.data.length;
+    };
+    NumericData.prototype.getBitsLength = function getBitsLength() {
+      return NumericData.getBitsLength(this.data.length);
+    };
+    NumericData.prototype.write = function write(bitBuffer) {
+      let i4, group, value2;
+      for (i4 = 0; i4 + 3 <= this.data.length; i4 += 3) {
+        group = this.data.substr(i4, 3);
+        value2 = parseInt(group, 10);
+        bitBuffer.put(value2, 10);
+      }
+      const remainingNum = this.data.length - i4;
+      if (remainingNum > 0) {
+        group = this.data.substr(i4);
+        value2 = parseInt(group, 10);
+        bitBuffer.put(value2, remainingNum * 3 + 1);
+      }
+    };
+    module2.exports = NumericData;
+  }
+});
+
+// node_modules/qrcode/lib/core/alphanumeric-data.js
+var require_alphanumeric_data = __commonJS({
+  "node_modules/qrcode/lib/core/alphanumeric-data.js"(exports2, module2) {
+    var Mode = require_mode();
+    var ALPHA_NUM_CHARS = [
+      "0",
+      "1",
+      "2",
+      "3",
+      "4",
+      "5",
+      "6",
+      "7",
+      "8",
+      "9",
+      "A",
+      "B",
+      "C",
+      "D",
+      "E",
+      "F",
+      "G",
+      "H",
+      "I",
+      "J",
+      "K",
+      "L",
+      "M",
+      "N",
+      "O",
+      "P",
+      "Q",
+      "R",
+      "S",
+      "T",
+      "U",
+      "V",
+      "W",
+      "X",
+      "Y",
+      "Z",
+      " ",
+      "$",
+      "%",
+      "*",
+      "+",
+      "-",
+      ".",
+      "/",
+      ":"
+    ];
+    function AlphanumericData(data) {
+      this.mode = Mode.ALPHANUMERIC;
+      this.data = data;
+    }
+    AlphanumericData.getBitsLength = function getBitsLength(length2) {
+      return 11 * Math.floor(length2 / 2) + 6 * (length2 % 2);
+    };
+    AlphanumericData.prototype.getLength = function getLength() {
+      return this.data.length;
+    };
+    AlphanumericData.prototype.getBitsLength = function getBitsLength() {
+      return AlphanumericData.getBitsLength(this.data.length);
+    };
+    AlphanumericData.prototype.write = function write(bitBuffer) {
+      let i4;
+      for (i4 = 0; i4 + 2 <= this.data.length; i4 += 2) {
+        let value2 = ALPHA_NUM_CHARS.indexOf(this.data[i4]) * 45;
+        value2 += ALPHA_NUM_CHARS.indexOf(this.data[i4 + 1]);
+        bitBuffer.put(value2, 11);
+      }
+      if (this.data.length % 2) {
+        bitBuffer.put(ALPHA_NUM_CHARS.indexOf(this.data[i4]), 6);
+      }
+    };
+    module2.exports = AlphanumericData;
+  }
+});
+
+// node_modules/qrcode/lib/core/byte-data.js
+var require_byte_data = __commonJS({
+  "node_modules/qrcode/lib/core/byte-data.js"(exports2, module2) {
+    var Mode = require_mode();
+    function ByteData(data) {
+      this.mode = Mode.BYTE;
+      if (typeof data === "string") {
+        this.data = new TextEncoder().encode(data);
+      } else {
+        this.data = new Uint8Array(data);
+      }
+    }
+    ByteData.getBitsLength = function getBitsLength(length2) {
+      return length2 * 8;
+    };
+    ByteData.prototype.getLength = function getLength() {
+      return this.data.length;
+    };
+    ByteData.prototype.getBitsLength = function getBitsLength() {
+      return ByteData.getBitsLength(this.data.length);
+    };
+    ByteData.prototype.write = function(bitBuffer) {
+      for (let i4 = 0, l4 = this.data.length; i4 < l4; i4++) {
+        bitBuffer.put(this.data[i4], 8);
+      }
+    };
+    module2.exports = ByteData;
+  }
+});
+
+// node_modules/qrcode/lib/core/kanji-data.js
+var require_kanji_data = __commonJS({
+  "node_modules/qrcode/lib/core/kanji-data.js"(exports2, module2) {
+    var Mode = require_mode();
+    var Utils = require_utils();
+    function KanjiData(data) {
+      this.mode = Mode.KANJI;
+      this.data = data;
+    }
+    KanjiData.getBitsLength = function getBitsLength(length2) {
+      return length2 * 13;
+    };
+    KanjiData.prototype.getLength = function getLength() {
+      return this.data.length;
+    };
+    KanjiData.prototype.getBitsLength = function getBitsLength() {
+      return KanjiData.getBitsLength(this.data.length);
+    };
+    KanjiData.prototype.write = function(bitBuffer) {
+      let i4;
+      for (i4 = 0; i4 < this.data.length; i4++) {
+        let value2 = Utils.toSJIS(this.data[i4]);
+        if (value2 >= 33088 && value2 <= 40956) {
+          value2 -= 33088;
+        } else if (value2 >= 57408 && value2 <= 60351) {
+          value2 -= 49472;
+        } else {
+          throw new Error(
+            "Invalid SJIS character: " + this.data[i4] + "\nMake sure your charset is UTF-8"
+          );
+        }
+        value2 = (value2 >>> 8 & 255) * 192 + (value2 & 255);
+        bitBuffer.put(value2, 13);
+      }
+    };
+    module2.exports = KanjiData;
+  }
+});
+
+// node_modules/dijkstrajs/dijkstra.js
+var require_dijkstra = __commonJS({
+  "node_modules/dijkstrajs/dijkstra.js"(exports2, module2) {
+    "use strict";
+    var dijkstra = {
+      single_source_shortest_paths: function(graph, s4, d3) {
+        var predecessors = {};
+        var costs = {};
+        costs[s4] = 0;
+        var open = dijkstra.PriorityQueue.make();
+        open.push(s4, 0);
+        var closest, u4, v3, cost_of_s_to_u, adjacent_nodes, cost_of_e, cost_of_s_to_u_plus_cost_of_e, cost_of_s_to_v, first_visit;
+        while (!open.empty()) {
+          closest = open.pop();
+          u4 = closest.value;
+          cost_of_s_to_u = closest.cost;
+          adjacent_nodes = graph[u4] || {};
+          for (v3 in adjacent_nodes) {
+            if (adjacent_nodes.hasOwnProperty(v3)) {
+              cost_of_e = adjacent_nodes[v3];
+              cost_of_s_to_u_plus_cost_of_e = cost_of_s_to_u + cost_of_e;
+              cost_of_s_to_v = costs[v3];
+              first_visit = typeof costs[v3] === "undefined";
+              if (first_visit || cost_of_s_to_v > cost_of_s_to_u_plus_cost_of_e) {
+                costs[v3] = cost_of_s_to_u_plus_cost_of_e;
+                open.push(v3, cost_of_s_to_u_plus_cost_of_e);
+                predecessors[v3] = u4;
+              }
+            }
+          }
+        }
+        if (typeof d3 !== "undefined" && typeof costs[d3] === "undefined") {
+          var msg = ["Could not find a path from ", s4, " to ", d3, "."].join("");
+          throw new Error(msg);
+        }
+        return predecessors;
+      },
+      extract_shortest_path_from_predecessor_list: function(predecessors, d3) {
+        var nodes = [];
+        var u4 = d3;
+        var predecessor;
+        while (u4) {
+          nodes.push(u4);
+          predecessor = predecessors[u4];
+          u4 = predecessors[u4];
+        }
+        nodes.reverse();
+        return nodes;
+      },
+      find_path: function(graph, s4, d3) {
+        var predecessors = dijkstra.single_source_shortest_paths(graph, s4, d3);
+        return dijkstra.extract_shortest_path_from_predecessor_list(
+          predecessors,
+          d3
+        );
+      },
+      /**
+       * A very naive priority queue implementation.
+       */
+      PriorityQueue: {
+        make: function(opts2) {
+          var T = dijkstra.PriorityQueue, t4 = {}, key;
+          opts2 = opts2 || {};
+          for (key in T) {
+            if (T.hasOwnProperty(key)) {
+              t4[key] = T[key];
+            }
+          }
+          t4.queue = [];
+          t4.sorter = opts2.sorter || T.default_sorter;
+          return t4;
+        },
+        default_sorter: function(a4, b3) {
+          return a4.cost - b3.cost;
+        },
+        /**
+         * Add a new item to the queue and ensure the highest priority element
+         * is at the front of the queue.
+         */
+        push: function(value2, cost) {
+          var item = { value: value2, cost };
+          this.queue.push(item);
+          this.queue.sort(this.sorter);
+        },
+        /**
+         * Return the highest priority element in the queue.
+         */
+        pop: function() {
+          return this.queue.shift();
+        },
+        empty: function() {
+          return this.queue.length === 0;
+        }
+      }
+    };
+    if (typeof module2 !== "undefined") {
+      module2.exports = dijkstra;
+    }
+  }
+});
+
+// node_modules/qrcode/lib/core/segments.js
+var require_segments = __commonJS({
+  "node_modules/qrcode/lib/core/segments.js"(exports2) {
+    var Mode = require_mode();
+    var NumericData = require_numeric_data();
+    var AlphanumericData = require_alphanumeric_data();
+    var ByteData = require_byte_data();
+    var KanjiData = require_kanji_data();
+    var Regex = require_regex();
+    var Utils = require_utils();
+    var dijkstra = require_dijkstra();
+    function getStringByteLength(str) {
+      return unescape(encodeURIComponent(str)).length;
+    }
+    function getSegments(regex2, mode, str) {
+      const segments = [];
+      let result;
+      while ((result = regex2.exec(str)) !== null) {
+        segments.push({
+          data: result[0],
+          index: result.index,
+          mode,
+          length: result[0].length
+        });
+      }
+      return segments;
+    }
+    function getSegmentsFromString(dataStr) {
+      const numSegs = getSegments(Regex.NUMERIC, Mode.NUMERIC, dataStr);
+      const alphaNumSegs = getSegments(Regex.ALPHANUMERIC, Mode.ALPHANUMERIC, dataStr);
+      let byteSegs;
+      let kanjiSegs;
+      if (Utils.isKanjiModeEnabled()) {
+        byteSegs = getSegments(Regex.BYTE, Mode.BYTE, dataStr);
+        kanjiSegs = getSegments(Regex.KANJI, Mode.KANJI, dataStr);
+      } else {
+        byteSegs = getSegments(Regex.BYTE_KANJI, Mode.BYTE, dataStr);
+        kanjiSegs = [];
+      }
+      const segs = numSegs.concat(alphaNumSegs, byteSegs, kanjiSegs);
+      return segs.sort(function(s1, s22) {
+        return s1.index - s22.index;
+      }).map(function(obj) {
+        return {
+          data: obj.data,
+          mode: obj.mode,
+          length: obj.length
+        };
+      });
+    }
+    function getSegmentBitsLength(length2, mode) {
+      switch (mode) {
+        case Mode.NUMERIC:
+          return NumericData.getBitsLength(length2);
+        case Mode.ALPHANUMERIC:
+          return AlphanumericData.getBitsLength(length2);
+        case Mode.KANJI:
+          return KanjiData.getBitsLength(length2);
+        case Mode.BYTE:
+          return ByteData.getBitsLength(length2);
+      }
+    }
+    function mergeSegments(segs) {
+      return segs.reduce(function(acc, curr) {
+        const prevSeg = acc.length - 1 >= 0 ? acc[acc.length - 1] : null;
+        if (prevSeg && prevSeg.mode === curr.mode) {
+          acc[acc.length - 1].data += curr.data;
+          return acc;
+        }
+        acc.push(curr);
+        return acc;
+      }, []);
+    }
+    function buildNodes(segs) {
+      const nodes = [];
+      for (let i4 = 0; i4 < segs.length; i4++) {
+        const seg = segs[i4];
+        switch (seg.mode) {
+          case Mode.NUMERIC:
+            nodes.push([
+              seg,
+              { data: seg.data, mode: Mode.ALPHANUMERIC, length: seg.length },
+              { data: seg.data, mode: Mode.BYTE, length: seg.length }
+            ]);
+            break;
+          case Mode.ALPHANUMERIC:
+            nodes.push([
+              seg,
+              { data: seg.data, mode: Mode.BYTE, length: seg.length }
+            ]);
+            break;
+          case Mode.KANJI:
+            nodes.push([
+              seg,
+              { data: seg.data, mode: Mode.BYTE, length: getStringByteLength(seg.data) }
+            ]);
+            break;
+          case Mode.BYTE:
+            nodes.push([
+              { data: seg.data, mode: Mode.BYTE, length: getStringByteLength(seg.data) }
+            ]);
+        }
+      }
+      return nodes;
+    }
+    function buildGraph(nodes, version2) {
+      const table = {};
+      const graph = { start: {} };
+      let prevNodeIds = ["start"];
+      for (let i4 = 0; i4 < nodes.length; i4++) {
+        const nodeGroup = nodes[i4];
+        const currentNodeIds = [];
+        for (let j = 0; j < nodeGroup.length; j++) {
+          const node = nodeGroup[j];
+          const key = "" + i4 + j;
+          currentNodeIds.push(key);
+          table[key] = { node, lastCount: 0 };
+          graph[key] = {};
+          for (let n5 = 0; n5 < prevNodeIds.length; n5++) {
+            const prevNodeId = prevNodeIds[n5];
+            if (table[prevNodeId] && table[prevNodeId].node.mode === node.mode) {
+              graph[prevNodeId][key] = getSegmentBitsLength(table[prevNodeId].lastCount + node.length, node.mode) - getSegmentBitsLength(table[prevNodeId].lastCount, node.mode);
+              table[prevNodeId].lastCount += node.length;
+            } else {
+              if (table[prevNodeId]) table[prevNodeId].lastCount = node.length;
+              graph[prevNodeId][key] = getSegmentBitsLength(node.length, node.mode) + 4 + Mode.getCharCountIndicator(node.mode, version2);
+            }
+          }
+        }
+        prevNodeIds = currentNodeIds;
+      }
+      for (let n5 = 0; n5 < prevNodeIds.length; n5++) {
+        graph[prevNodeIds[n5]].end = 0;
+      }
+      return { map: graph, table };
+    }
+    function buildSingleSegment(data, modesHint) {
+      let mode;
+      const bestMode = Mode.getBestModeForData(data);
+      mode = Mode.from(modesHint, bestMode);
+      if (mode !== Mode.BYTE && mode.bit < bestMode.bit) {
+        throw new Error('"' + data + '" cannot be encoded with mode ' + Mode.toString(mode) + ".\n Suggested mode is: " + Mode.toString(bestMode));
+      }
+      if (mode === Mode.KANJI && !Utils.isKanjiModeEnabled()) {
+        mode = Mode.BYTE;
+      }
+      switch (mode) {
+        case Mode.NUMERIC:
+          return new NumericData(data);
+        case Mode.ALPHANUMERIC:
+          return new AlphanumericData(data);
+        case Mode.KANJI:
+          return new KanjiData(data);
+        case Mode.BYTE:
+          return new ByteData(data);
+      }
+    }
+    exports2.fromArray = function fromArray(array) {
+      return array.reduce(function(acc, seg) {
+        if (typeof seg === "string") {
+          acc.push(buildSingleSegment(seg, null));
+        } else if (seg.data) {
+          acc.push(buildSingleSegment(seg.data, seg.mode));
+        }
+        return acc;
+      }, []);
+    };
+    exports2.fromString = function fromString(data, version2) {
+      const segs = getSegmentsFromString(data, Utils.isKanjiModeEnabled());
+      const nodes = buildNodes(segs);
+      const graph = buildGraph(nodes, version2);
+      const path2 = dijkstra.find_path(graph.map, "start", "end");
+      const optimizedSegs = [];
+      for (let i4 = 1; i4 < path2.length - 1; i4++) {
+        optimizedSegs.push(graph.table[path2[i4]].node);
+      }
+      return exports2.fromArray(mergeSegments(optimizedSegs));
+    };
+    exports2.rawSplit = function rawSplit(data) {
+      return exports2.fromArray(
+        getSegmentsFromString(data, Utils.isKanjiModeEnabled())
+      );
+    };
+  }
+});
+
+// node_modules/qrcode/lib/core/qrcode.js
+var require_qrcode = __commonJS({
+  "node_modules/qrcode/lib/core/qrcode.js"(exports2) {
+    var Utils = require_utils();
+    var ECLevel = require_error_correction_level();
+    var BitBuffer = require_bit_buffer();
+    var BitMatrix = require_bit_matrix();
+    var AlignmentPattern = require_alignment_pattern();
+    var FinderPattern = require_finder_pattern();
+    var MaskPattern = require_mask_pattern();
+    var ECCode = require_error_correction_code();
+    var ReedSolomonEncoder = require_reed_solomon_encoder();
+    var Version = require_version();
+    var FormatInfo = require_format_info();
+    var Mode = require_mode();
+    var Segments = require_segments();
+    function setupFinderPattern(matrix, version2) {
+      const size = matrix.size;
+      const pos = FinderPattern.getPositions(version2);
+      for (let i4 = 0; i4 < pos.length; i4++) {
+        const row = pos[i4][0];
+        const col = pos[i4][1];
+        for (let r4 = -1; r4 <= 7; r4++) {
+          if (row + r4 <= -1 || size <= row + r4) continue;
+          for (let c4 = -1; c4 <= 7; c4++) {
+            if (col + c4 <= -1 || size <= col + c4) continue;
+            if (r4 >= 0 && r4 <= 6 && (c4 === 0 || c4 === 6) || c4 >= 0 && c4 <= 6 && (r4 === 0 || r4 === 6) || r4 >= 2 && r4 <= 4 && c4 >= 2 && c4 <= 4) {
+              matrix.set(row + r4, col + c4, true, true);
+            } else {
+              matrix.set(row + r4, col + c4, false, true);
+            }
+          }
+        }
+      }
+    }
+    function setupTimingPattern(matrix) {
+      const size = matrix.size;
+      for (let r4 = 8; r4 < size - 8; r4++) {
+        const value2 = r4 % 2 === 0;
+        matrix.set(r4, 6, value2, true);
+        matrix.set(6, r4, value2, true);
+      }
+    }
+    function setupAlignmentPattern(matrix, version2) {
+      const pos = AlignmentPattern.getPositions(version2);
+      for (let i4 = 0; i4 < pos.length; i4++) {
+        const row = pos[i4][0];
+        const col = pos[i4][1];
+        for (let r4 = -2; r4 <= 2; r4++) {
+          for (let c4 = -2; c4 <= 2; c4++) {
+            if (r4 === -2 || r4 === 2 || c4 === -2 || c4 === 2 || r4 === 0 && c4 === 0) {
+              matrix.set(row + r4, col + c4, true, true);
+            } else {
+              matrix.set(row + r4, col + c4, false, true);
+            }
+          }
+        }
+      }
+    }
+    function setupVersionInfo(matrix, version2) {
+      const size = matrix.size;
+      const bits = Version.getEncodedBits(version2);
+      let row, col, mod;
+      for (let i4 = 0; i4 < 18; i4++) {
+        row = Math.floor(i4 / 3);
+        col = i4 % 3 + size - 8 - 3;
+        mod = (bits >> i4 & 1) === 1;
+        matrix.set(row, col, mod, true);
+        matrix.set(col, row, mod, true);
+      }
+    }
+    function setupFormatInfo(matrix, errorCorrectionLevel, maskPattern) {
+      const size = matrix.size;
+      const bits = FormatInfo.getEncodedBits(errorCorrectionLevel, maskPattern);
+      let i4, mod;
+      for (i4 = 0; i4 < 15; i4++) {
+        mod = (bits >> i4 & 1) === 1;
+        if (i4 < 6) {
+          matrix.set(i4, 8, mod, true);
+        } else if (i4 < 8) {
+          matrix.set(i4 + 1, 8, mod, true);
+        } else {
+          matrix.set(size - 15 + i4, 8, mod, true);
+        }
+        if (i4 < 8) {
+          matrix.set(8, size - i4 - 1, mod, true);
+        } else if (i4 < 9) {
+          matrix.set(8, 15 - i4 - 1 + 1, mod, true);
+        } else {
+          matrix.set(8, 15 - i4 - 1, mod, true);
+        }
+      }
+      matrix.set(size - 8, 8, 1, true);
+    }
+    function setupData(matrix, data) {
+      const size = matrix.size;
+      let inc = -1;
+      let row = size - 1;
+      let bitIndex = 7;
+      let byteIndex = 0;
+      for (let col = size - 1; col > 0; col -= 2) {
+        if (col === 6) col--;
+        while (true) {
+          for (let c4 = 0; c4 < 2; c4++) {
+            if (!matrix.isReserved(row, col - c4)) {
+              let dark = false;
+              if (byteIndex < data.length) {
+                dark = (data[byteIndex] >>> bitIndex & 1) === 1;
+              }
+              matrix.set(row, col - c4, dark);
+              bitIndex--;
+              if (bitIndex === -1) {
+                byteIndex++;
+                bitIndex = 7;
+              }
+            }
+          }
+          row += inc;
+          if (row < 0 || size <= row) {
+            row -= inc;
+            inc = -inc;
+            break;
+          }
+        }
+      }
+    }
+    function createData(version2, errorCorrectionLevel, segments) {
+      const buffer = new BitBuffer();
+      segments.forEach(function(data) {
+        buffer.put(data.mode.bit, 4);
+        buffer.put(data.getLength(), Mode.getCharCountIndicator(data.mode, version2));
+        data.write(buffer);
+      });
+      const totalCodewords = Utils.getSymbolTotalCodewords(version2);
+      const ecTotalCodewords = ECCode.getTotalCodewordsCount(version2, errorCorrectionLevel);
+      const dataTotalCodewordsBits = (totalCodewords - ecTotalCodewords) * 8;
+      if (buffer.getLengthInBits() + 4 <= dataTotalCodewordsBits) {
+        buffer.put(0, 4);
+      }
+      while (buffer.getLengthInBits() % 8 !== 0) {
+        buffer.putBit(0);
+      }
+      const remainingByte = (dataTotalCodewordsBits - buffer.getLengthInBits()) / 8;
+      for (let i4 = 0; i4 < remainingByte; i4++) {
+        buffer.put(i4 % 2 ? 17 : 236, 8);
+      }
+      return createCodewords(buffer, version2, errorCorrectionLevel);
+    }
+    function createCodewords(bitBuffer, version2, errorCorrectionLevel) {
+      const totalCodewords = Utils.getSymbolTotalCodewords(version2);
+      const ecTotalCodewords = ECCode.getTotalCodewordsCount(version2, errorCorrectionLevel);
+      const dataTotalCodewords = totalCodewords - ecTotalCodewords;
+      const ecTotalBlocks = ECCode.getBlocksCount(version2, errorCorrectionLevel);
+      const blocksInGroup2 = totalCodewords % ecTotalBlocks;
+      const blocksInGroup1 = ecTotalBlocks - blocksInGroup2;
+      const totalCodewordsInGroup1 = Math.floor(totalCodewords / ecTotalBlocks);
+      const dataCodewordsInGroup1 = Math.floor(dataTotalCodewords / ecTotalBlocks);
+      const dataCodewordsInGroup2 = dataCodewordsInGroup1 + 1;
+      const ecCount = totalCodewordsInGroup1 - dataCodewordsInGroup1;
+      const rs = new ReedSolomonEncoder(ecCount);
+      let offset2 = 0;
+      const dcData = new Array(ecTotalBlocks);
+      const ecData = new Array(ecTotalBlocks);
+      let maxDataSize = 0;
+      const buffer = new Uint8Array(bitBuffer.buffer);
+      for (let b3 = 0; b3 < ecTotalBlocks; b3++) {
+        const dataSize = b3 < blocksInGroup1 ? dataCodewordsInGroup1 : dataCodewordsInGroup2;
+        dcData[b3] = buffer.slice(offset2, offset2 + dataSize);
+        ecData[b3] = rs.encode(dcData[b3]);
+        offset2 += dataSize;
+        maxDataSize = Math.max(maxDataSize, dataSize);
+      }
+      const data = new Uint8Array(totalCodewords);
+      let index2 = 0;
+      let i4, r4;
+      for (i4 = 0; i4 < maxDataSize; i4++) {
+        for (r4 = 0; r4 < ecTotalBlocks; r4++) {
+          if (i4 < dcData[r4].length) {
+            data[index2++] = dcData[r4][i4];
+          }
+        }
+      }
+      for (i4 = 0; i4 < ecCount; i4++) {
+        for (r4 = 0; r4 < ecTotalBlocks; r4++) {
+          data[index2++] = ecData[r4][i4];
+        }
+      }
+      return data;
+    }
+    function createSymbol(data, version2, errorCorrectionLevel, maskPattern) {
+      let segments;
+      if (Array.isArray(data)) {
+        segments = Segments.fromArray(data);
+      } else if (typeof data === "string") {
+        let estimatedVersion = version2;
+        if (!estimatedVersion) {
+          const rawSegments = Segments.rawSplit(data);
+          estimatedVersion = Version.getBestVersionForData(rawSegments, errorCorrectionLevel);
+        }
+        segments = Segments.fromString(data, estimatedVersion || 40);
+      } else {
+        throw new Error("Invalid data");
+      }
+      const bestVersion = Version.getBestVersionForData(segments, errorCorrectionLevel);
+      if (!bestVersion) {
+        throw new Error("The amount of data is too big to be stored in a QR Code");
+      }
+      if (!version2) {
+        version2 = bestVersion;
+      } else if (version2 < bestVersion) {
+        throw new Error(
+          "\nThe chosen QR Code version cannot contain this amount of data.\nMinimum version required to store current data is: " + bestVersion + ".\n"
+        );
+      }
+      const dataBits = createData(version2, errorCorrectionLevel, segments);
+      const moduleCount = Utils.getSymbolSize(version2);
+      const modules = new BitMatrix(moduleCount);
+      setupFinderPattern(modules, version2);
+      setupTimingPattern(modules);
+      setupAlignmentPattern(modules, version2);
+      setupFormatInfo(modules, errorCorrectionLevel, 0);
+      if (version2 >= 7) {
+        setupVersionInfo(modules, version2);
+      }
+      setupData(modules, dataBits);
+      if (isNaN(maskPattern)) {
+        maskPattern = MaskPattern.getBestMask(
+          modules,
+          setupFormatInfo.bind(null, modules, errorCorrectionLevel)
+        );
+      }
+      MaskPattern.applyMask(maskPattern, modules);
+      setupFormatInfo(modules, errorCorrectionLevel, maskPattern);
+      return {
+        modules,
+        version: version2,
+        errorCorrectionLevel,
+        maskPattern,
+        segments
+      };
+    }
+    exports2.create = function create(data, options) {
+      if (typeof data === "undefined" || data === "") {
+        throw new Error("No input text");
+      }
+      let errorCorrectionLevel = ECLevel.M;
+      let version2;
+      let mask;
+      if (typeof options !== "undefined") {
+        errorCorrectionLevel = ECLevel.from(options.errorCorrectionLevel, ECLevel.M);
+        version2 = Version.from(options.version);
+        mask = MaskPattern.from(options.maskPattern);
+        if (options.toSJISFunc) {
+          Utils.setToSJISFunction(options.toSJISFunc);
+        }
+      }
+      return createSymbol(data, version2, errorCorrectionLevel, mask);
+    };
+  }
+});
+
+// node_modules/pngjs/lib/chunkstream.js
+var require_chunkstream = __commonJS({
+  "node_modules/pngjs/lib/chunkstream.js"(exports2, module2) {
+    "use strict";
+    var util = require("util");
+    var Stream = require("stream");
+    var ChunkStream = module2.exports = function() {
+      Stream.call(this);
+      this._buffers = [];
+      this._buffered = 0;
+      this._reads = [];
+      this._paused = false;
+      this._encoding = "utf8";
+      this.writable = true;
+    };
+    util.inherits(ChunkStream, Stream);
+    ChunkStream.prototype.read = function(length2, callback) {
+      this._reads.push({
+        length: Math.abs(length2),
+        // if length < 0 then at most this length
+        allowLess: length2 < 0,
+        func: callback
+      });
+      process.nextTick(
+        function() {
+          this._process();
+          if (this._paused && this._reads && this._reads.length > 0) {
+            this._paused = false;
+            this.emit("drain");
+          }
+        }.bind(this)
+      );
+    };
+    ChunkStream.prototype.write = function(data, encoding) {
+      if (!this.writable) {
+        this.emit("error", new Error("Stream not writable"));
+        return false;
+      }
+      let dataBuffer;
+      if (Buffer.isBuffer(data)) {
+        dataBuffer = data;
+      } else {
+        dataBuffer = Buffer.from(data, encoding || this._encoding);
+      }
+      this._buffers.push(dataBuffer);
+      this._buffered += dataBuffer.length;
+      this._process();
+      if (this._reads && this._reads.length === 0) {
+        this._paused = true;
+      }
+      return this.writable && !this._paused;
+    };
+    ChunkStream.prototype.end = function(data, encoding) {
+      if (data) {
+        this.write(data, encoding);
+      }
+      this.writable = false;
+      if (!this._buffers) {
+        return;
+      }
+      if (this._buffers.length === 0) {
+        this._end();
+      } else {
+        this._buffers.push(null);
+        this._process();
+      }
+    };
+    ChunkStream.prototype.destroySoon = ChunkStream.prototype.end;
+    ChunkStream.prototype._end = function() {
+      if (this._reads.length > 0) {
+        this.emit("error", new Error("Unexpected end of input"));
+      }
+      this.destroy();
+    };
+    ChunkStream.prototype.destroy = function() {
+      if (!this._buffers) {
+        return;
+      }
+      this.writable = false;
+      this._reads = null;
+      this._buffers = null;
+      this.emit("close");
+    };
+    ChunkStream.prototype._processReadAllowingLess = function(read) {
+      this._reads.shift();
+      let smallerBuf = this._buffers[0];
+      if (smallerBuf.length > read.length) {
+        this._buffered -= read.length;
+        this._buffers[0] = smallerBuf.slice(read.length);
+        read.func.call(this, smallerBuf.slice(0, read.length));
+      } else {
+        this._buffered -= smallerBuf.length;
+        this._buffers.shift();
+        read.func.call(this, smallerBuf);
+      }
+    };
+    ChunkStream.prototype._processRead = function(read) {
+      this._reads.shift();
+      let pos = 0;
+      let count = 0;
+      let data = Buffer.alloc(read.length);
+      while (pos < read.length) {
+        let buf = this._buffers[count++];
+        let len = Math.min(buf.length, read.length - pos);
+        buf.copy(data, pos, 0, len);
+        pos += len;
+        if (len !== buf.length) {
+          this._buffers[--count] = buf.slice(len);
+        }
+      }
+      if (count > 0) {
+        this._buffers.splice(0, count);
+      }
+      this._buffered -= read.length;
+      read.func.call(this, data);
+    };
+    ChunkStream.prototype._process = function() {
+      try {
+        while (this._buffered > 0 && this._reads && this._reads.length > 0) {
+          let read = this._reads[0];
+          if (read.allowLess) {
+            this._processReadAllowingLess(read);
+          } else if (this._buffered >= read.length) {
+            this._processRead(read);
+          } else {
+            break;
+          }
+        }
+        if (this._buffers && !this.writable) {
+          this._end();
+        }
+      } catch (ex) {
+        this.emit("error", ex);
+      }
+    };
+  }
+});
+
+// node_modules/pngjs/lib/interlace.js
+var require_interlace = __commonJS({
+  "node_modules/pngjs/lib/interlace.js"(exports2) {
+    "use strict";
+    var imagePasses = [
+      {
+        // pass 1 - 1px
+        x: [0],
+        y: [0]
+      },
+      {
+        // pass 2 - 1px
+        x: [4],
+        y: [0]
+      },
+      {
+        // pass 3 - 2px
+        x: [0, 4],
+        y: [4]
+      },
+      {
+        // pass 4 - 4px
+        x: [2, 6],
+        y: [0, 4]
+      },
+      {
+        // pass 5 - 8px
+        x: [0, 2, 4, 6],
+        y: [2, 6]
+      },
+      {
+        // pass 6 - 16px
+        x: [1, 3, 5, 7],
+        y: [0, 2, 4, 6]
+      },
+      {
+        // pass 7 - 32px
+        x: [0, 1, 2, 3, 4, 5, 6, 7],
+        y: [1, 3, 5, 7]
+      }
+    ];
+    exports2.getImagePasses = function(width, height2) {
+      let images = [];
+      let xLeftOver = width % 8;
+      let yLeftOver = height2 % 8;
+      let xRepeats = (width - xLeftOver) / 8;
+      let yRepeats = (height2 - yLeftOver) / 8;
+      for (let i4 = 0; i4 < imagePasses.length; i4++) {
+        let pass = imagePasses[i4];
+        let passWidth = xRepeats * pass.x.length;
+        let passHeight = yRepeats * pass.y.length;
+        for (let j = 0; j < pass.x.length; j++) {
+          if (pass.x[j] < xLeftOver) {
+            passWidth++;
+          } else {
+            break;
+          }
+        }
+        for (let j = 0; j < pass.y.length; j++) {
+          if (pass.y[j] < yLeftOver) {
+            passHeight++;
+          } else {
+            break;
+          }
+        }
+        if (passWidth > 0 && passHeight > 0) {
+          images.push({ width: passWidth, height: passHeight, index: i4 });
+        }
+      }
+      return images;
+    };
+    exports2.getInterlaceIterator = function(width) {
+      return function(x, y3, pass) {
+        let outerXLeftOver = x % imagePasses[pass].x.length;
+        let outerX = (x - outerXLeftOver) / imagePasses[pass].x.length * 8 + imagePasses[pass].x[outerXLeftOver];
+        let outerYLeftOver = y3 % imagePasses[pass].y.length;
+        let outerY = (y3 - outerYLeftOver) / imagePasses[pass].y.length * 8 + imagePasses[pass].y[outerYLeftOver];
+        return outerX * 4 + outerY * width * 4;
+      };
+    };
+  }
+});
+
+// node_modules/pngjs/lib/paeth-predictor.js
+var require_paeth_predictor = __commonJS({
+  "node_modules/pngjs/lib/paeth-predictor.js"(exports2, module2) {
+    "use strict";
+    module2.exports = function paethPredictor(left, above, upLeft) {
+      let paeth = left + above - upLeft;
+      let pLeft = Math.abs(paeth - left);
+      let pAbove = Math.abs(paeth - above);
+      let pUpLeft = Math.abs(paeth - upLeft);
+      if (pLeft <= pAbove && pLeft <= pUpLeft) {
+        return left;
+      }
+      if (pAbove <= pUpLeft) {
+        return above;
+      }
+      return upLeft;
+    };
+  }
+});
+
+// node_modules/pngjs/lib/filter-parse.js
+var require_filter_parse = __commonJS({
+  "node_modules/pngjs/lib/filter-parse.js"(exports2, module2) {
+    "use strict";
+    var interlaceUtils = require_interlace();
+    var paethPredictor = require_paeth_predictor();
+    function getByteWidth(width, bpp, depth) {
+      let byteWidth = width * bpp;
+      if (depth !== 8) {
+        byteWidth = Math.ceil(byteWidth / (8 / depth));
+      }
+      return byteWidth;
+    }
+    var Filter = module2.exports = function(bitmapInfo, dependencies) {
+      let width = bitmapInfo.width;
+      let height2 = bitmapInfo.height;
+      let interlace = bitmapInfo.interlace;
+      let bpp = bitmapInfo.bpp;
+      let depth = bitmapInfo.depth;
+      this.read = dependencies.read;
+      this.write = dependencies.write;
+      this.complete = dependencies.complete;
+      this._imageIndex = 0;
+      this._images = [];
+      if (interlace) {
+        let passes = interlaceUtils.getImagePasses(width, height2);
+        for (let i4 = 0; i4 < passes.length; i4++) {
+          this._images.push({
+            byteWidth: getByteWidth(passes[i4].width, bpp, depth),
+            height: passes[i4].height,
+            lineIndex: 0
+          });
+        }
+      } else {
+        this._images.push({
+          byteWidth: getByteWidth(width, bpp, depth),
+          height: height2,
+          lineIndex: 0
+        });
+      }
+      if (depth === 8) {
+        this._xComparison = bpp;
+      } else if (depth === 16) {
+        this._xComparison = bpp * 2;
+      } else {
+        this._xComparison = 1;
+      }
+    };
+    Filter.prototype.start = function() {
+      this.read(
+        this._images[this._imageIndex].byteWidth + 1,
+        this._reverseFilterLine.bind(this)
+      );
+    };
+    Filter.prototype._unFilterType1 = function(rawData, unfilteredLine, byteWidth) {
+      let xComparison = this._xComparison;
+      let xBiggerThan = xComparison - 1;
+      for (let x = 0; x < byteWidth; x++) {
+        let rawByte = rawData[1 + x];
+        let f1Left = x > xBiggerThan ? unfilteredLine[x - xComparison] : 0;
+        unfilteredLine[x] = rawByte + f1Left;
+      }
+    };
+    Filter.prototype._unFilterType2 = function(rawData, unfilteredLine, byteWidth) {
+      let lastLine = this._lastLine;
+      for (let x = 0; x < byteWidth; x++) {
+        let rawByte = rawData[1 + x];
+        let f2Up = lastLine ? lastLine[x] : 0;
+        unfilteredLine[x] = rawByte + f2Up;
+      }
+    };
+    Filter.prototype._unFilterType3 = function(rawData, unfilteredLine, byteWidth) {
+      let xComparison = this._xComparison;
+      let xBiggerThan = xComparison - 1;
+      let lastLine = this._lastLine;
+      for (let x = 0; x < byteWidth; x++) {
+        let rawByte = rawData[1 + x];
+        let f3Up = lastLine ? lastLine[x] : 0;
+        let f3Left = x > xBiggerThan ? unfilteredLine[x - xComparison] : 0;
+        let f3Add = Math.floor((f3Left + f3Up) / 2);
+        unfilteredLine[x] = rawByte + f3Add;
+      }
+    };
+    Filter.prototype._unFilterType4 = function(rawData, unfilteredLine, byteWidth) {
+      let xComparison = this._xComparison;
+      let xBiggerThan = xComparison - 1;
+      let lastLine = this._lastLine;
+      for (let x = 0; x < byteWidth; x++) {
+        let rawByte = rawData[1 + x];
+        let f4Up = lastLine ? lastLine[x] : 0;
+        let f4Left = x > xBiggerThan ? unfilteredLine[x - xComparison] : 0;
+        let f4UpLeft = x > xBiggerThan && lastLine ? lastLine[x - xComparison] : 0;
+        let f4Add = paethPredictor(f4Left, f4Up, f4UpLeft);
+        unfilteredLine[x] = rawByte + f4Add;
+      }
+    };
+    Filter.prototype._reverseFilterLine = function(rawData) {
+      let filter2 = rawData[0];
+      let unfilteredLine;
+      let currentImage = this._images[this._imageIndex];
+      let byteWidth = currentImage.byteWidth;
+      if (filter2 === 0) {
+        unfilteredLine = rawData.slice(1, byteWidth + 1);
+      } else {
+        unfilteredLine = Buffer.alloc(byteWidth);
+        switch (filter2) {
+          case 1:
+            this._unFilterType1(rawData, unfilteredLine, byteWidth);
+            break;
+          case 2:
+            this._unFilterType2(rawData, unfilteredLine, byteWidth);
+            break;
+          case 3:
+            this._unFilterType3(rawData, unfilteredLine, byteWidth);
+            break;
+          case 4:
+            this._unFilterType4(rawData, unfilteredLine, byteWidth);
+            break;
+          default:
+            throw new Error("Unrecognised filter type - " + filter2);
+        }
+      }
+      this.write(unfilteredLine);
+      currentImage.lineIndex++;
+      if (currentImage.lineIndex >= currentImage.height) {
+        this._lastLine = null;
+        this._imageIndex++;
+        currentImage = this._images[this._imageIndex];
+      } else {
+        this._lastLine = unfilteredLine;
+      }
+      if (currentImage) {
+        this.read(currentImage.byteWidth + 1, this._reverseFilterLine.bind(this));
+      } else {
+        this._lastLine = null;
+        this.complete();
+      }
+    };
+  }
+});
+
+// node_modules/pngjs/lib/filter-parse-async.js
+var require_filter_parse_async = __commonJS({
+  "node_modules/pngjs/lib/filter-parse-async.js"(exports2, module2) {
+    "use strict";
+    var util = require("util");
+    var ChunkStream = require_chunkstream();
+    var Filter = require_filter_parse();
+    var FilterAsync = module2.exports = function(bitmapInfo) {
+      ChunkStream.call(this);
+      let buffers = [];
+      let that = this;
+      this._filter = new Filter(bitmapInfo, {
+        read: this.read.bind(this),
+        write: function(buffer) {
+          buffers.push(buffer);
+        },
+        complete: function() {
+          that.emit("complete", Buffer.concat(buffers));
+        }
+      });
+      this._filter.start();
+    };
+    util.inherits(FilterAsync, ChunkStream);
+  }
+});
+
+// node_modules/pngjs/lib/constants.js
+var require_constants = __commonJS({
+  "node_modules/pngjs/lib/constants.js"(exports2, module2) {
+    "use strict";
+    module2.exports = {
+      PNG_SIGNATURE: [137, 80, 78, 71, 13, 10, 26, 10],
+      TYPE_IHDR: 1229472850,
+      TYPE_IEND: 1229278788,
+      TYPE_IDAT: 1229209940,
+      TYPE_PLTE: 1347179589,
+      TYPE_tRNS: 1951551059,
+      // eslint-disable-line camelcase
+      TYPE_gAMA: 1732332865,
+      // eslint-disable-line camelcase
+      // color-type bits
+      COLORTYPE_GRAYSCALE: 0,
+      COLORTYPE_PALETTE: 1,
+      COLORTYPE_COLOR: 2,
+      COLORTYPE_ALPHA: 4,
+      // e.g. grayscale and alpha
+      // color-type combinations
+      COLORTYPE_PALETTE_COLOR: 3,
+      COLORTYPE_COLOR_ALPHA: 6,
+      COLORTYPE_TO_BPP_MAP: {
+        0: 1,
+        2: 3,
+        3: 1,
+        4: 2,
+        6: 4
+      },
+      GAMMA_DIVISION: 1e5
+    };
+  }
+});
+
+// node_modules/pngjs/lib/crc.js
+var require_crc = __commonJS({
+  "node_modules/pngjs/lib/crc.js"(exports2, module2) {
+    "use strict";
+    var crcTable = [];
+    (function() {
+      for (let i4 = 0; i4 < 256; i4++) {
+        let currentCrc = i4;
+        for (let j = 0; j < 8; j++) {
+          if (currentCrc & 1) {
+            currentCrc = 3988292384 ^ currentCrc >>> 1;
+          } else {
+            currentCrc = currentCrc >>> 1;
+          }
+        }
+        crcTable[i4] = currentCrc;
+      }
+    })();
+    var CrcCalculator = module2.exports = function() {
+      this._crc = -1;
+    };
+    CrcCalculator.prototype.write = function(data) {
+      for (let i4 = 0; i4 < data.length; i4++) {
+        this._crc = crcTable[(this._crc ^ data[i4]) & 255] ^ this._crc >>> 8;
+      }
+      return true;
+    };
+    CrcCalculator.prototype.crc32 = function() {
+      return this._crc ^ -1;
+    };
+    CrcCalculator.crc32 = function(buf) {
+      let crc = -1;
+      for (let i4 = 0; i4 < buf.length; i4++) {
+        crc = crcTable[(crc ^ buf[i4]) & 255] ^ crc >>> 8;
+      }
+      return crc ^ -1;
+    };
+  }
+});
+
+// node_modules/pngjs/lib/parser.js
+var require_parser2 = __commonJS({
+  "node_modules/pngjs/lib/parser.js"(exports2, module2) {
+    "use strict";
+    var constants2 = require_constants();
+    var CrcCalculator = require_crc();
+    var Parser = module2.exports = function(options, dependencies) {
+      this._options = options;
+      options.checkCRC = options.checkCRC !== false;
+      this._hasIHDR = false;
+      this._hasIEND = false;
+      this._emittedHeadersFinished = false;
+      this._palette = [];
+      this._colorType = 0;
+      this._chunks = {};
+      this._chunks[constants2.TYPE_IHDR] = this._handleIHDR.bind(this);
+      this._chunks[constants2.TYPE_IEND] = this._handleIEND.bind(this);
+      this._chunks[constants2.TYPE_IDAT] = this._handleIDAT.bind(this);
+      this._chunks[constants2.TYPE_PLTE] = this._handlePLTE.bind(this);
+      this._chunks[constants2.TYPE_tRNS] = this._handleTRNS.bind(this);
+      this._chunks[constants2.TYPE_gAMA] = this._handleGAMA.bind(this);
+      this.read = dependencies.read;
+      this.error = dependencies.error;
+      this.metadata = dependencies.metadata;
+      this.gamma = dependencies.gamma;
+      this.transColor = dependencies.transColor;
+      this.palette = dependencies.palette;
+      this.parsed = dependencies.parsed;
+      this.inflateData = dependencies.inflateData;
+      this.finished = dependencies.finished;
+      this.simpleTransparency = dependencies.simpleTransparency;
+      this.headersFinished = dependencies.headersFinished || function() {
+      };
+    };
+    Parser.prototype.start = function() {
+      this.read(constants2.PNG_SIGNATURE.length, this._parseSignature.bind(this));
+    };
+    Parser.prototype._parseSignature = function(data) {
+      let signature = constants2.PNG_SIGNATURE;
+      for (let i4 = 0; i4 < signature.length; i4++) {
+        if (data[i4] !== signature[i4]) {
+          this.error(new Error("Invalid file signature"));
+          return;
+        }
+      }
+      this.read(8, this._parseChunkBegin.bind(this));
+    };
+    Parser.prototype._parseChunkBegin = function(data) {
+      let length2 = data.readUInt32BE(0);
+      let type = data.readUInt32BE(4);
+      let name = "";
+      for (let i4 = 4; i4 < 8; i4++) {
+        name += String.fromCharCode(data[i4]);
+      }
+      let ancillary = Boolean(data[4] & 32);
+      if (!this._hasIHDR && type !== constants2.TYPE_IHDR) {
+        this.error(new Error("Expected IHDR on beggining"));
+        return;
+      }
+      this._crc = new CrcCalculator();
+      this._crc.write(Buffer.from(name));
+      if (this._chunks[type]) {
+        return this._chunks[type](length2);
+      }
+      if (!ancillary) {
+        this.error(new Error("Unsupported critical chunk type " + name));
+        return;
+      }
+      this.read(length2 + 4, this._skipChunk.bind(this));
+    };
+    Parser.prototype._skipChunk = function() {
+      this.read(8, this._parseChunkBegin.bind(this));
+    };
+    Parser.prototype._handleChunkEnd = function() {
+      this.read(4, this._parseChunkEnd.bind(this));
+    };
+    Parser.prototype._parseChunkEnd = function(data) {
+      let fileCrc = data.readInt32BE(0);
+      let calcCrc = this._crc.crc32();
+      if (this._options.checkCRC && calcCrc !== fileCrc) {
+        this.error(new Error("Crc error - " + fileCrc + " - " + calcCrc));
+        return;
+      }
+      if (!this._hasIEND) {
+        this.read(8, this._parseChunkBegin.bind(this));
+      }
+    };
+    Parser.prototype._handleIHDR = function(length2) {
+      this.read(length2, this._parseIHDR.bind(this));
+    };
+    Parser.prototype._parseIHDR = function(data) {
+      this._crc.write(data);
+      let width = data.readUInt32BE(0);
+      let height2 = data.readUInt32BE(4);
+      let depth = data[8];
+      let colorType = data[9];
+      let compr = data[10];
+      let filter2 = data[11];
+      let interlace = data[12];
+      if (depth !== 8 && depth !== 4 && depth !== 2 && depth !== 1 && depth !== 16) {
+        this.error(new Error("Unsupported bit depth " + depth));
+        return;
+      }
+      if (!(colorType in constants2.COLORTYPE_TO_BPP_MAP)) {
+        this.error(new Error("Unsupported color type"));
+        return;
+      }
+      if (compr !== 0) {
+        this.error(new Error("Unsupported compression method"));
+        return;
+      }
+      if (filter2 !== 0) {
+        this.error(new Error("Unsupported filter method"));
+        return;
+      }
+      if (interlace !== 0 && interlace !== 1) {
+        this.error(new Error("Unsupported interlace method"));
+        return;
+      }
+      this._colorType = colorType;
+      let bpp = constants2.COLORTYPE_TO_BPP_MAP[this._colorType];
+      this._hasIHDR = true;
+      this.metadata({
+        width,
+        height: height2,
+        depth,
+        interlace: Boolean(interlace),
+        palette: Boolean(colorType & constants2.COLORTYPE_PALETTE),
+        color: Boolean(colorType & constants2.COLORTYPE_COLOR),
+        alpha: Boolean(colorType & constants2.COLORTYPE_ALPHA),
+        bpp,
+        colorType
+      });
+      this._handleChunkEnd();
+    };
+    Parser.prototype._handlePLTE = function(length2) {
+      this.read(length2, this._parsePLTE.bind(this));
+    };
+    Parser.prototype._parsePLTE = function(data) {
+      this._crc.write(data);
+      let entries = Math.floor(data.length / 3);
+      for (let i4 = 0; i4 < entries; i4++) {
+        this._palette.push([data[i4 * 3], data[i4 * 3 + 1], data[i4 * 3 + 2], 255]);
+      }
+      this.palette(this._palette);
+      this._handleChunkEnd();
+    };
+    Parser.prototype._handleTRNS = function(length2) {
+      this.simpleTransparency();
+      this.read(length2, this._parseTRNS.bind(this));
+    };
+    Parser.prototype._parseTRNS = function(data) {
+      this._crc.write(data);
+      if (this._colorType === constants2.COLORTYPE_PALETTE_COLOR) {
+        if (this._palette.length === 0) {
+          this.error(new Error("Transparency chunk must be after palette"));
+          return;
+        }
+        if (data.length > this._palette.length) {
+          this.error(new Error("More transparent colors than palette size"));
+          return;
+        }
+        for (let i4 = 0; i4 < data.length; i4++) {
+          this._palette[i4][3] = data[i4];
+        }
+        this.palette(this._palette);
+      }
+      if (this._colorType === constants2.COLORTYPE_GRAYSCALE) {
+        this.transColor([data.readUInt16BE(0)]);
+      }
+      if (this._colorType === constants2.COLORTYPE_COLOR) {
+        this.transColor([
+          data.readUInt16BE(0),
+          data.readUInt16BE(2),
+          data.readUInt16BE(4)
+        ]);
+      }
+      this._handleChunkEnd();
+    };
+    Parser.prototype._handleGAMA = function(length2) {
+      this.read(length2, this._parseGAMA.bind(this));
+    };
+    Parser.prototype._parseGAMA = function(data) {
+      this._crc.write(data);
+      this.gamma(data.readUInt32BE(0) / constants2.GAMMA_DIVISION);
+      this._handleChunkEnd();
+    };
+    Parser.prototype._handleIDAT = function(length2) {
+      if (!this._emittedHeadersFinished) {
+        this._emittedHeadersFinished = true;
+        this.headersFinished();
+      }
+      this.read(-length2, this._parseIDAT.bind(this, length2));
+    };
+    Parser.prototype._parseIDAT = function(length2, data) {
+      this._crc.write(data);
+      if (this._colorType === constants2.COLORTYPE_PALETTE_COLOR && this._palette.length === 0) {
+        throw new Error("Expected palette not found");
+      }
+      this.inflateData(data);
+      let leftOverLength = length2 - data.length;
+      if (leftOverLength > 0) {
+        this._handleIDAT(leftOverLength);
+      } else {
+        this._handleChunkEnd();
+      }
+    };
+    Parser.prototype._handleIEND = function(length2) {
+      this.read(length2, this._parseIEND.bind(this));
+    };
+    Parser.prototype._parseIEND = function(data) {
+      this._crc.write(data);
+      this._hasIEND = true;
+      this._handleChunkEnd();
+      if (this.finished) {
+        this.finished();
+      }
+    };
+  }
+});
+
+// node_modules/pngjs/lib/bitmapper.js
+var require_bitmapper = __commonJS({
+  "node_modules/pngjs/lib/bitmapper.js"(exports2) {
+    "use strict";
+    var interlaceUtils = require_interlace();
+    var pixelBppMapper = [
+      // 0 - dummy entry
+      function() {
+      },
+      // 1 - L
+      // 0: 0, 1: 0, 2: 0, 3: 0xff
+      function(pxData, data, pxPos, rawPos) {
+        if (rawPos === data.length) {
+          throw new Error("Ran out of data");
+        }
+        let pixel = data[rawPos];
+        pxData[pxPos] = pixel;
+        pxData[pxPos + 1] = pixel;
+        pxData[pxPos + 2] = pixel;
+        pxData[pxPos + 3] = 255;
+      },
+      // 2 - LA
+      // 0: 0, 1: 0, 2: 0, 3: 1
+      function(pxData, data, pxPos, rawPos) {
+        if (rawPos + 1 >= data.length) {
+          throw new Error("Ran out of data");
+        }
+        let pixel = data[rawPos];
+        pxData[pxPos] = pixel;
+        pxData[pxPos + 1] = pixel;
+        pxData[pxPos + 2] = pixel;
+        pxData[pxPos + 3] = data[rawPos + 1];
+      },
+      // 3 - RGB
+      // 0: 0, 1: 1, 2: 2, 3: 0xff
+      function(pxData, data, pxPos, rawPos) {
+        if (rawPos + 2 >= data.length) {
+          throw new Error("Ran out of data");
+        }
+        pxData[pxPos] = data[rawPos];
+        pxData[pxPos + 1] = data[rawPos + 1];
+        pxData[pxPos + 2] = data[rawPos + 2];
+        pxData[pxPos + 3] = 255;
+      },
+      // 4 - RGBA
+      // 0: 0, 1: 1, 2: 2, 3: 3
+      function(pxData, data, pxPos, rawPos) {
+        if (rawPos + 3 >= data.length) {
+          throw new Error("Ran out of data");
+        }
+        pxData[pxPos] = data[rawPos];
+        pxData[pxPos + 1] = data[rawPos + 1];
+        pxData[pxPos + 2] = data[rawPos + 2];
+        pxData[pxPos + 3] = data[rawPos + 3];
+      }
+    ];
+    var pixelBppCustomMapper = [
+      // 0 - dummy entry
+      function() {
+      },
+      // 1 - L
+      // 0: 0, 1: 0, 2: 0, 3: 0xff
+      function(pxData, pixelData, pxPos, maxBit) {
+        let pixel = pixelData[0];
+        pxData[pxPos] = pixel;
+        pxData[pxPos + 1] = pixel;
+        pxData[pxPos + 2] = pixel;
+        pxData[pxPos + 3] = maxBit;
+      },
+      // 2 - LA
+      // 0: 0, 1: 0, 2: 0, 3: 1
+      function(pxData, pixelData, pxPos) {
+        let pixel = pixelData[0];
+        pxData[pxPos] = pixel;
+        pxData[pxPos + 1] = pixel;
+        pxData[pxPos + 2] = pixel;
+        pxData[pxPos + 3] = pixelData[1];
+      },
+      // 3 - RGB
+      // 0: 0, 1: 1, 2: 2, 3: 0xff
+      function(pxData, pixelData, pxPos, maxBit) {
+        pxData[pxPos] = pixelData[0];
+        pxData[pxPos + 1] = pixelData[1];
+        pxData[pxPos + 2] = pixelData[2];
+        pxData[pxPos + 3] = maxBit;
+      },
+      // 4 - RGBA
+      // 0: 0, 1: 1, 2: 2, 3: 3
+      function(pxData, pixelData, pxPos) {
+        pxData[pxPos] = pixelData[0];
+        pxData[pxPos + 1] = pixelData[1];
+        pxData[pxPos + 2] = pixelData[2];
+        pxData[pxPos + 3] = pixelData[3];
+      }
+    ];
+    function bitRetriever(data, depth) {
+      let leftOver = [];
+      let i4 = 0;
+      function split2() {
+        if (i4 === data.length) {
+          throw new Error("Ran out of data");
+        }
+        let byte = data[i4];
+        i4++;
+        let byte8, byte7, byte6, byte5, byte4, byte3, byte2, byte1;
+        switch (depth) {
+          default:
+            throw new Error("unrecognised depth");
+          case 16:
+            byte2 = data[i4];
+            i4++;
+            leftOver.push((byte << 8) + byte2);
+            break;
+          case 4:
+            byte2 = byte & 15;
+            byte1 = byte >> 4;
+            leftOver.push(byte1, byte2);
+            break;
+          case 2:
+            byte4 = byte & 3;
+            byte3 = byte >> 2 & 3;
+            byte2 = byte >> 4 & 3;
+            byte1 = byte >> 6 & 3;
+            leftOver.push(byte1, byte2, byte3, byte4);
+            break;
+          case 1:
+            byte8 = byte & 1;
+            byte7 = byte >> 1 & 1;
+            byte6 = byte >> 2 & 1;
+            byte5 = byte >> 3 & 1;
+            byte4 = byte >> 4 & 1;
+            byte3 = byte >> 5 & 1;
+            byte2 = byte >> 6 & 1;
+            byte1 = byte >> 7 & 1;
+            leftOver.push(byte1, byte2, byte3, byte4, byte5, byte6, byte7, byte8);
+            break;
+        }
+      }
+      return {
+        get: function(count) {
+          while (leftOver.length < count) {
+            split2();
+          }
+          let returner = leftOver.slice(0, count);
+          leftOver = leftOver.slice(count);
+          return returner;
+        },
+        resetAfterLine: function() {
+          leftOver.length = 0;
+        },
+        end: function() {
+          if (i4 !== data.length) {
+            throw new Error("extra data found");
+          }
+        }
+      };
+    }
+    function mapImage8Bit(image, pxData, getPxPos, bpp, data, rawPos) {
+      let imageWidth = image.width;
+      let imageHeight = image.height;
+      let imagePass = image.index;
+      for (let y3 = 0; y3 < imageHeight; y3++) {
+        for (let x = 0; x < imageWidth; x++) {
+          let pxPos = getPxPos(x, y3, imagePass);
+          pixelBppMapper[bpp](pxData, data, pxPos, rawPos);
+          rawPos += bpp;
+        }
+      }
+      return rawPos;
+    }
+    function mapImageCustomBit(image, pxData, getPxPos, bpp, bits, maxBit) {
+      let imageWidth = image.width;
+      let imageHeight = image.height;
+      let imagePass = image.index;
+      for (let y3 = 0; y3 < imageHeight; y3++) {
+        for (let x = 0; x < imageWidth; x++) {
+          let pixelData = bits.get(bpp);
+          let pxPos = getPxPos(x, y3, imagePass);
+          pixelBppCustomMapper[bpp](pxData, pixelData, pxPos, maxBit);
+        }
+        bits.resetAfterLine();
+      }
+    }
+    exports2.dataToBitMap = function(data, bitmapInfo) {
+      let width = bitmapInfo.width;
+      let height2 = bitmapInfo.height;
+      let depth = bitmapInfo.depth;
+      let bpp = bitmapInfo.bpp;
+      let interlace = bitmapInfo.interlace;
+      let bits;
+      if (depth !== 8) {
+        bits = bitRetriever(data, depth);
+      }
+      let pxData;
+      if (depth <= 8) {
+        pxData = Buffer.alloc(width * height2 * 4);
+      } else {
+        pxData = new Uint16Array(width * height2 * 4);
+      }
+      let maxBit = Math.pow(2, depth) - 1;
+      let rawPos = 0;
+      let images;
+      let getPxPos;
+      if (interlace) {
+        images = interlaceUtils.getImagePasses(width, height2);
+        getPxPos = interlaceUtils.getInterlaceIterator(width, height2);
+      } else {
+        let nonInterlacedPxPos = 0;
+        getPxPos = function() {
+          let returner = nonInterlacedPxPos;
+          nonInterlacedPxPos += 4;
+          return returner;
+        };
+        images = [{ width, height: height2 }];
+      }
+      for (let imageIndex = 0; imageIndex < images.length; imageIndex++) {
+        if (depth === 8) {
+          rawPos = mapImage8Bit(
+            images[imageIndex],
+            pxData,
+            getPxPos,
+            bpp,
+            data,
+            rawPos
+          );
+        } else {
+          mapImageCustomBit(
+            images[imageIndex],
+            pxData,
+            getPxPos,
+            bpp,
+            bits,
+            maxBit
+          );
+        }
+      }
+      if (depth === 8) {
+        if (rawPos !== data.length) {
+          throw new Error("extra data found");
+        }
+      } else {
+        bits.end();
+      }
+      return pxData;
+    };
+  }
+});
+
+// node_modules/pngjs/lib/format-normaliser.js
+var require_format_normaliser = __commonJS({
+  "node_modules/pngjs/lib/format-normaliser.js"(exports2, module2) {
+    "use strict";
+    function dePalette(indata, outdata, width, height2, palette) {
+      let pxPos = 0;
+      for (let y3 = 0; y3 < height2; y3++) {
+        for (let x = 0; x < width; x++) {
+          let color = palette[indata[pxPos]];
+          if (!color) {
+            throw new Error("index " + indata[pxPos] + " not in palette");
+          }
+          for (let i4 = 0; i4 < 4; i4++) {
+            outdata[pxPos + i4] = color[i4];
+          }
+          pxPos += 4;
+        }
+      }
+    }
+    function replaceTransparentColor(indata, outdata, width, height2, transColor) {
+      let pxPos = 0;
+      for (let y3 = 0; y3 < height2; y3++) {
+        for (let x = 0; x < width; x++) {
+          let makeTrans = false;
+          if (transColor.length === 1) {
+            if (transColor[0] === indata[pxPos]) {
+              makeTrans = true;
+            }
+          } else if (transColor[0] === indata[pxPos] && transColor[1] === indata[pxPos + 1] && transColor[2] === indata[pxPos + 2]) {
+            makeTrans = true;
+          }
+          if (makeTrans) {
+            for (let i4 = 0; i4 < 4; i4++) {
+              outdata[pxPos + i4] = 0;
+            }
+          }
+          pxPos += 4;
+        }
+      }
+    }
+    function scaleDepth(indata, outdata, width, height2, depth) {
+      let maxOutSample = 255;
+      let maxInSample = Math.pow(2, depth) - 1;
+      let pxPos = 0;
+      for (let y3 = 0; y3 < height2; y3++) {
+        for (let x = 0; x < width; x++) {
+          for (let i4 = 0; i4 < 4; i4++) {
+            outdata[pxPos + i4] = Math.floor(
+              indata[pxPos + i4] * maxOutSample / maxInSample + 0.5
+            );
+          }
+          pxPos += 4;
+        }
+      }
+    }
+    module2.exports = function(indata, imageData) {
+      let depth = imageData.depth;
+      let width = imageData.width;
+      let height2 = imageData.height;
+      let colorType = imageData.colorType;
+      let transColor = imageData.transColor;
+      let palette = imageData.palette;
+      let outdata = indata;
+      if (colorType === 3) {
+        dePalette(indata, outdata, width, height2, palette);
+      } else {
+        if (transColor) {
+          replaceTransparentColor(indata, outdata, width, height2, transColor);
+        }
+        if (depth !== 8) {
+          if (depth === 16) {
+            outdata = Buffer.alloc(width * height2 * 4);
+          }
+          scaleDepth(indata, outdata, width, height2, depth);
+        }
+      }
+      return outdata;
+    };
+  }
+});
+
+// node_modules/pngjs/lib/parser-async.js
+var require_parser_async = __commonJS({
+  "node_modules/pngjs/lib/parser-async.js"(exports2, module2) {
+    "use strict";
+    var util = require("util");
+    var zlib2 = require("zlib");
+    var ChunkStream = require_chunkstream();
+    var FilterAsync = require_filter_parse_async();
+    var Parser = require_parser2();
+    var bitmapper = require_bitmapper();
+    var formatNormaliser = require_format_normaliser();
+    var ParserAsync = module2.exports = function(options) {
+      ChunkStream.call(this);
+      this._parser = new Parser(options, {
+        read: this.read.bind(this),
+        error: this._handleError.bind(this),
+        metadata: this._handleMetaData.bind(this),
+        gamma: this.emit.bind(this, "gamma"),
+        palette: this._handlePalette.bind(this),
+        transColor: this._handleTransColor.bind(this),
+        finished: this._finished.bind(this),
+        inflateData: this._inflateData.bind(this),
+        simpleTransparency: this._simpleTransparency.bind(this),
+        headersFinished: this._headersFinished.bind(this)
+      });
+      this._options = options;
+      this.writable = true;
+      this._parser.start();
+    };
+    util.inherits(ParserAsync, ChunkStream);
+    ParserAsync.prototype._handleError = function(err) {
+      this.emit("error", err);
+      this.writable = false;
+      this.destroy();
+      if (this._inflate && this._inflate.destroy) {
+        this._inflate.destroy();
+      }
+      if (this._filter) {
+        this._filter.destroy();
+        this._filter.on("error", function() {
+        });
+      }
+      this.errord = true;
+    };
+    ParserAsync.prototype._inflateData = function(data) {
+      if (!this._inflate) {
+        if (this._bitmapInfo.interlace) {
+          this._inflate = zlib2.createInflate();
+          this._inflate.on("error", this.emit.bind(this, "error"));
+          this._filter.on("complete", this._complete.bind(this));
+          this._inflate.pipe(this._filter);
+        } else {
+          let rowSize = (this._bitmapInfo.width * this._bitmapInfo.bpp * this._bitmapInfo.depth + 7 >> 3) + 1;
+          let imageSize = rowSize * this._bitmapInfo.height;
+          let chunkSize = Math.max(imageSize, zlib2.Z_MIN_CHUNK);
+          this._inflate = zlib2.createInflate({ chunkSize });
+          let leftToInflate = imageSize;
+          let emitError = this.emit.bind(this, "error");
+          this._inflate.on("error", function(err) {
+            if (!leftToInflate) {
+              return;
+            }
+            emitError(err);
+          });
+          this._filter.on("complete", this._complete.bind(this));
+          let filterWrite = this._filter.write.bind(this._filter);
+          this._inflate.on("data", function(chunk) {
+            if (!leftToInflate) {
+              return;
+            }
+            if (chunk.length > leftToInflate) {
+              chunk = chunk.slice(0, leftToInflate);
+            }
+            leftToInflate -= chunk.length;
+            filterWrite(chunk);
+          });
+          this._inflate.on("end", this._filter.end.bind(this._filter));
+        }
+      }
+      this._inflate.write(data);
+    };
+    ParserAsync.prototype._handleMetaData = function(metaData) {
+      this._metaData = metaData;
+      this._bitmapInfo = Object.create(metaData);
+      this._filter = new FilterAsync(this._bitmapInfo);
+    };
+    ParserAsync.prototype._handleTransColor = function(transColor) {
+      this._bitmapInfo.transColor = transColor;
+    };
+    ParserAsync.prototype._handlePalette = function(palette) {
+      this._bitmapInfo.palette = palette;
+    };
+    ParserAsync.prototype._simpleTransparency = function() {
+      this._metaData.alpha = true;
+    };
+    ParserAsync.prototype._headersFinished = function() {
+      this.emit("metadata", this._metaData);
+    };
+    ParserAsync.prototype._finished = function() {
+      if (this.errord) {
+        return;
+      }
+      if (!this._inflate) {
+        this.emit("error", "No Inflate block");
+      } else {
+        this._inflate.end();
+      }
+    };
+    ParserAsync.prototype._complete = function(filteredData) {
+      if (this.errord) {
+        return;
+      }
+      let normalisedBitmapData;
+      try {
+        let bitmapData = bitmapper.dataToBitMap(filteredData, this._bitmapInfo);
+        normalisedBitmapData = formatNormaliser(bitmapData, this._bitmapInfo);
+        bitmapData = null;
+      } catch (ex) {
+        this._handleError(ex);
+        return;
+      }
+      this.emit("parsed", normalisedBitmapData);
+    };
+  }
+});
+
+// node_modules/pngjs/lib/bitpacker.js
+var require_bitpacker = __commonJS({
+  "node_modules/pngjs/lib/bitpacker.js"(exports2, module2) {
+    "use strict";
+    var constants2 = require_constants();
+    module2.exports = function(dataIn, width, height2, options) {
+      let outHasAlpha = [constants2.COLORTYPE_COLOR_ALPHA, constants2.COLORTYPE_ALPHA].indexOf(
+        options.colorType
+      ) !== -1;
+      if (options.colorType === options.inputColorType) {
+        let bigEndian = (function() {
+          let buffer = new ArrayBuffer(2);
+          new DataView(buffer).setInt16(
+            0,
+            256,
+            true
+            /* littleEndian */
+          );
+          return new Int16Array(buffer)[0] !== 256;
+        })();
+        if (options.bitDepth === 8 || options.bitDepth === 16 && bigEndian) {
+          return dataIn;
+        }
+      }
+      let data = options.bitDepth !== 16 ? dataIn : new Uint16Array(dataIn.buffer);
+      let maxValue = 255;
+      let inBpp = constants2.COLORTYPE_TO_BPP_MAP[options.inputColorType];
+      if (inBpp === 4 && !options.inputHasAlpha) {
+        inBpp = 3;
+      }
+      let outBpp = constants2.COLORTYPE_TO_BPP_MAP[options.colorType];
+      if (options.bitDepth === 16) {
+        maxValue = 65535;
+        outBpp *= 2;
+      }
+      let outData = Buffer.alloc(width * height2 * outBpp);
+      let inIndex = 0;
+      let outIndex = 0;
+      let bgColor = options.bgColor || {};
+      if (bgColor.red === void 0) {
+        bgColor.red = maxValue;
+      }
+      if (bgColor.green === void 0) {
+        bgColor.green = maxValue;
+      }
+      if (bgColor.blue === void 0) {
+        bgColor.blue = maxValue;
+      }
+      function getRGBA() {
+        let red;
+        let green;
+        let blue;
+        let alpha = maxValue;
+        switch (options.inputColorType) {
+          case constants2.COLORTYPE_COLOR_ALPHA:
+            alpha = data[inIndex + 3];
+            red = data[inIndex];
+            green = data[inIndex + 1];
+            blue = data[inIndex + 2];
+            break;
+          case constants2.COLORTYPE_COLOR:
+            red = data[inIndex];
+            green = data[inIndex + 1];
+            blue = data[inIndex + 2];
+            break;
+          case constants2.COLORTYPE_ALPHA:
+            alpha = data[inIndex + 1];
+            red = data[inIndex];
+            green = red;
+            blue = red;
+            break;
+          case constants2.COLORTYPE_GRAYSCALE:
+            red = data[inIndex];
+            green = red;
+            blue = red;
+            break;
+          default:
+            throw new Error(
+              "input color type:" + options.inputColorType + " is not supported at present"
+            );
+        }
+        if (options.inputHasAlpha) {
+          if (!outHasAlpha) {
+            alpha /= maxValue;
+            red = Math.min(
+              Math.max(Math.round((1 - alpha) * bgColor.red + alpha * red), 0),
+              maxValue
+            );
+            green = Math.min(
+              Math.max(Math.round((1 - alpha) * bgColor.green + alpha * green), 0),
+              maxValue
+            );
+            blue = Math.min(
+              Math.max(Math.round((1 - alpha) * bgColor.blue + alpha * blue), 0),
+              maxValue
+            );
+          }
+        }
+        return { red, green, blue, alpha };
+      }
+      for (let y3 = 0; y3 < height2; y3++) {
+        for (let x = 0; x < width; x++) {
+          let rgba = getRGBA(data, inIndex);
+          switch (options.colorType) {
+            case constants2.COLORTYPE_COLOR_ALPHA:
+            case constants2.COLORTYPE_COLOR:
+              if (options.bitDepth === 8) {
+                outData[outIndex] = rgba.red;
+                outData[outIndex + 1] = rgba.green;
+                outData[outIndex + 2] = rgba.blue;
+                if (outHasAlpha) {
+                  outData[outIndex + 3] = rgba.alpha;
+                }
+              } else {
+                outData.writeUInt16BE(rgba.red, outIndex);
+                outData.writeUInt16BE(rgba.green, outIndex + 2);
+                outData.writeUInt16BE(rgba.blue, outIndex + 4);
+                if (outHasAlpha) {
+                  outData.writeUInt16BE(rgba.alpha, outIndex + 6);
+                }
+              }
+              break;
+            case constants2.COLORTYPE_ALPHA:
+            case constants2.COLORTYPE_GRAYSCALE: {
+              let grayscale = (rgba.red + rgba.green + rgba.blue) / 3;
+              if (options.bitDepth === 8) {
+                outData[outIndex] = grayscale;
+                if (outHasAlpha) {
+                  outData[outIndex + 1] = rgba.alpha;
+                }
+              } else {
+                outData.writeUInt16BE(grayscale, outIndex);
+                if (outHasAlpha) {
+                  outData.writeUInt16BE(rgba.alpha, outIndex + 2);
+                }
+              }
+              break;
+            }
+            default:
+              throw new Error("unrecognised color Type " + options.colorType);
+          }
+          inIndex += inBpp;
+          outIndex += outBpp;
+        }
+      }
+      return outData;
+    };
+  }
+});
+
+// node_modules/pngjs/lib/filter-pack.js
+var require_filter_pack = __commonJS({
+  "node_modules/pngjs/lib/filter-pack.js"(exports2, module2) {
+    "use strict";
+    var paethPredictor = require_paeth_predictor();
+    function filterNone(pxData, pxPos, byteWidth, rawData, rawPos) {
+      for (let x = 0; x < byteWidth; x++) {
+        rawData[rawPos + x] = pxData[pxPos + x];
+      }
+    }
+    function filterSumNone(pxData, pxPos, byteWidth) {
+      let sum = 0;
+      let length2 = pxPos + byteWidth;
+      for (let i4 = pxPos; i4 < length2; i4++) {
+        sum += Math.abs(pxData[i4]);
+      }
+      return sum;
+    }
+    function filterSub(pxData, pxPos, byteWidth, rawData, rawPos, bpp) {
+      for (let x = 0; x < byteWidth; x++) {
+        let left = x >= bpp ? pxData[pxPos + x - bpp] : 0;
+        let val = pxData[pxPos + x] - left;
+        rawData[rawPos + x] = val;
+      }
+    }
+    function filterSumSub(pxData, pxPos, byteWidth, bpp) {
+      let sum = 0;
+      for (let x = 0; x < byteWidth; x++) {
+        let left = x >= bpp ? pxData[pxPos + x - bpp] : 0;
+        let val = pxData[pxPos + x] - left;
+        sum += Math.abs(val);
+      }
+      return sum;
+    }
+    function filterUp(pxData, pxPos, byteWidth, rawData, rawPos) {
+      for (let x = 0; x < byteWidth; x++) {
+        let up = pxPos > 0 ? pxData[pxPos + x - byteWidth] : 0;
+        let val = pxData[pxPos + x] - up;
+        rawData[rawPos + x] = val;
+      }
+    }
+    function filterSumUp(pxData, pxPos, byteWidth) {
+      let sum = 0;
+      let length2 = pxPos + byteWidth;
+      for (let x = pxPos; x < length2; x++) {
+        let up = pxPos > 0 ? pxData[x - byteWidth] : 0;
+        let val = pxData[x] - up;
+        sum += Math.abs(val);
+      }
+      return sum;
+    }
+    function filterAvg(pxData, pxPos, byteWidth, rawData, rawPos, bpp) {
+      for (let x = 0; x < byteWidth; x++) {
+        let left = x >= bpp ? pxData[pxPos + x - bpp] : 0;
+        let up = pxPos > 0 ? pxData[pxPos + x - byteWidth] : 0;
+        let val = pxData[pxPos + x] - (left + up >> 1);
+        rawData[rawPos + x] = val;
+      }
+    }
+    function filterSumAvg(pxData, pxPos, byteWidth, bpp) {
+      let sum = 0;
+      for (let x = 0; x < byteWidth; x++) {
+        let left = x >= bpp ? pxData[pxPos + x - bpp] : 0;
+        let up = pxPos > 0 ? pxData[pxPos + x - byteWidth] : 0;
+        let val = pxData[pxPos + x] - (left + up >> 1);
+        sum += Math.abs(val);
+      }
+      return sum;
+    }
+    function filterPaeth(pxData, pxPos, byteWidth, rawData, rawPos, bpp) {
+      for (let x = 0; x < byteWidth; x++) {
+        let left = x >= bpp ? pxData[pxPos + x - bpp] : 0;
+        let up = pxPos > 0 ? pxData[pxPos + x - byteWidth] : 0;
+        let upleft = pxPos > 0 && x >= bpp ? pxData[pxPos + x - (byteWidth + bpp)] : 0;
+        let val = pxData[pxPos + x] - paethPredictor(left, up, upleft);
+        rawData[rawPos + x] = val;
+      }
+    }
+    function filterSumPaeth(pxData, pxPos, byteWidth, bpp) {
+      let sum = 0;
+      for (let x = 0; x < byteWidth; x++) {
+        let left = x >= bpp ? pxData[pxPos + x - bpp] : 0;
+        let up = pxPos > 0 ? pxData[pxPos + x - byteWidth] : 0;
+        let upleft = pxPos > 0 && x >= bpp ? pxData[pxPos + x - (byteWidth + bpp)] : 0;
+        let val = pxData[pxPos + x] - paethPredictor(left, up, upleft);
+        sum += Math.abs(val);
+      }
+      return sum;
+    }
+    var filters = {
+      0: filterNone,
+      1: filterSub,
+      2: filterUp,
+      3: filterAvg,
+      4: filterPaeth
+    };
+    var filterSums = {
+      0: filterSumNone,
+      1: filterSumSub,
+      2: filterSumUp,
+      3: filterSumAvg,
+      4: filterSumPaeth
+    };
+    module2.exports = function(pxData, width, height2, options, bpp) {
+      let filterTypes;
+      if (!("filterType" in options) || options.filterType === -1) {
+        filterTypes = [0, 1, 2, 3, 4];
+      } else if (typeof options.filterType === "number") {
+        filterTypes = [options.filterType];
+      } else {
+        throw new Error("unrecognised filter types");
+      }
+      if (options.bitDepth === 16) {
+        bpp *= 2;
+      }
+      let byteWidth = width * bpp;
+      let rawPos = 0;
+      let pxPos = 0;
+      let rawData = Buffer.alloc((byteWidth + 1) * height2);
+      let sel = filterTypes[0];
+      for (let y3 = 0; y3 < height2; y3++) {
+        if (filterTypes.length > 1) {
+          let min2 = Infinity;
+          for (let i4 = 0; i4 < filterTypes.length; i4++) {
+            let sum = filterSums[filterTypes[i4]](pxData, pxPos, byteWidth, bpp);
+            if (sum < min2) {
+              sel = filterTypes[i4];
+              min2 = sum;
+            }
+          }
+        }
+        rawData[rawPos] = sel;
+        rawPos++;
+        filters[sel](pxData, pxPos, byteWidth, rawData, rawPos, bpp);
+        rawPos += byteWidth;
+        pxPos += byteWidth;
+      }
+      return rawData;
+    };
+  }
+});
+
+// node_modules/pngjs/lib/packer.js
+var require_packer = __commonJS({
+  "node_modules/pngjs/lib/packer.js"(exports2, module2) {
+    "use strict";
+    var constants2 = require_constants();
+    var CrcStream = require_crc();
+    var bitPacker = require_bitpacker();
+    var filter2 = require_filter_pack();
+    var zlib2 = require("zlib");
+    var Packer = module2.exports = function(options) {
+      this._options = options;
+      options.deflateChunkSize = options.deflateChunkSize || 32 * 1024;
+      options.deflateLevel = options.deflateLevel != null ? options.deflateLevel : 9;
+      options.deflateStrategy = options.deflateStrategy != null ? options.deflateStrategy : 3;
+      options.inputHasAlpha = options.inputHasAlpha != null ? options.inputHasAlpha : true;
+      options.deflateFactory = options.deflateFactory || zlib2.createDeflate;
+      options.bitDepth = options.bitDepth || 8;
+      options.colorType = typeof options.colorType === "number" ? options.colorType : constants2.COLORTYPE_COLOR_ALPHA;
+      options.inputColorType = typeof options.inputColorType === "number" ? options.inputColorType : constants2.COLORTYPE_COLOR_ALPHA;
+      if ([
+        constants2.COLORTYPE_GRAYSCALE,
+        constants2.COLORTYPE_COLOR,
+        constants2.COLORTYPE_COLOR_ALPHA,
+        constants2.COLORTYPE_ALPHA
+      ].indexOf(options.colorType) === -1) {
+        throw new Error(
+          "option color type:" + options.colorType + " is not supported at present"
+        );
+      }
+      if ([
+        constants2.COLORTYPE_GRAYSCALE,
+        constants2.COLORTYPE_COLOR,
+        constants2.COLORTYPE_COLOR_ALPHA,
+        constants2.COLORTYPE_ALPHA
+      ].indexOf(options.inputColorType) === -1) {
+        throw new Error(
+          "option input color type:" + options.inputColorType + " is not supported at present"
+        );
+      }
+      if (options.bitDepth !== 8 && options.bitDepth !== 16) {
+        throw new Error(
+          "option bit depth:" + options.bitDepth + " is not supported at present"
+        );
+      }
+    };
+    Packer.prototype.getDeflateOptions = function() {
+      return {
+        chunkSize: this._options.deflateChunkSize,
+        level: this._options.deflateLevel,
+        strategy: this._options.deflateStrategy
+      };
+    };
+    Packer.prototype.createDeflate = function() {
+      return this._options.deflateFactory(this.getDeflateOptions());
+    };
+    Packer.prototype.filterData = function(data, width, height2) {
+      let packedData = bitPacker(data, width, height2, this._options);
+      let bpp = constants2.COLORTYPE_TO_BPP_MAP[this._options.colorType];
+      let filteredData = filter2(packedData, width, height2, this._options, bpp);
+      return filteredData;
+    };
+    Packer.prototype._packChunk = function(type, data) {
+      let len = data ? data.length : 0;
+      let buf = Buffer.alloc(len + 12);
+      buf.writeUInt32BE(len, 0);
+      buf.writeUInt32BE(type, 4);
+      if (data) {
+        data.copy(buf, 8);
+      }
+      buf.writeInt32BE(
+        CrcStream.crc32(buf.slice(4, buf.length - 4)),
+        buf.length - 4
+      );
+      return buf;
+    };
+    Packer.prototype.packGAMA = function(gamma) {
+      let buf = Buffer.alloc(4);
+      buf.writeUInt32BE(Math.floor(gamma * constants2.GAMMA_DIVISION), 0);
+      return this._packChunk(constants2.TYPE_gAMA, buf);
+    };
+    Packer.prototype.packIHDR = function(width, height2) {
+      let buf = Buffer.alloc(13);
+      buf.writeUInt32BE(width, 0);
+      buf.writeUInt32BE(height2, 4);
+      buf[8] = this._options.bitDepth;
+      buf[9] = this._options.colorType;
+      buf[10] = 0;
+      buf[11] = 0;
+      buf[12] = 0;
+      return this._packChunk(constants2.TYPE_IHDR, buf);
+    };
+    Packer.prototype.packIDAT = function(data) {
+      return this._packChunk(constants2.TYPE_IDAT, data);
+    };
+    Packer.prototype.packIEND = function() {
+      return this._packChunk(constants2.TYPE_IEND, null);
+    };
+  }
+});
+
+// node_modules/pngjs/lib/packer-async.js
+var require_packer_async = __commonJS({
+  "node_modules/pngjs/lib/packer-async.js"(exports2, module2) {
+    "use strict";
+    var util = require("util");
+    var Stream = require("stream");
+    var constants2 = require_constants();
+    var Packer = require_packer();
+    var PackerAsync = module2.exports = function(opt) {
+      Stream.call(this);
+      let options = opt || {};
+      this._packer = new Packer(options);
+      this._deflate = this._packer.createDeflate();
+      this.readable = true;
+    };
+    util.inherits(PackerAsync, Stream);
+    PackerAsync.prototype.pack = function(data, width, height2, gamma) {
+      this.emit("data", Buffer.from(constants2.PNG_SIGNATURE));
+      this.emit("data", this._packer.packIHDR(width, height2));
+      if (gamma) {
+        this.emit("data", this._packer.packGAMA(gamma));
+      }
+      let filteredData = this._packer.filterData(data, width, height2);
+      this._deflate.on("error", this.emit.bind(this, "error"));
+      this._deflate.on(
+        "data",
+        function(compressedData) {
+          this.emit("data", this._packer.packIDAT(compressedData));
+        }.bind(this)
+      );
+      this._deflate.on(
+        "end",
+        function() {
+          this.emit("data", this._packer.packIEND());
+          this.emit("end");
+        }.bind(this)
+      );
+      this._deflate.end(filteredData);
+    };
+  }
+});
+
+// node_modules/pngjs/lib/sync-inflate.js
+var require_sync_inflate = __commonJS({
+  "node_modules/pngjs/lib/sync-inflate.js"(exports2, module2) {
+    "use strict";
+    var assert = require("assert").ok;
+    var zlib2 = require("zlib");
+    var util = require("util");
+    var kMaxLength = require("buffer").kMaxLength;
+    function Inflate(opts2) {
+      if (!(this instanceof Inflate)) {
+        return new Inflate(opts2);
+      }
+      if (opts2 && opts2.chunkSize < zlib2.Z_MIN_CHUNK) {
+        opts2.chunkSize = zlib2.Z_MIN_CHUNK;
+      }
+      zlib2.Inflate.call(this, opts2);
+      this._offset = this._offset === void 0 ? this._outOffset : this._offset;
+      this._buffer = this._buffer || this._outBuffer;
+      if (opts2 && opts2.maxLength != null) {
+        this._maxLength = opts2.maxLength;
+      }
+    }
+    function createInflate(opts2) {
+      return new Inflate(opts2);
+    }
+    function _close(engine2, callback) {
+      if (callback) {
+        process.nextTick(callback);
+      }
+      if (!engine2._handle) {
+        return;
+      }
+      engine2._handle.close();
+      engine2._handle = null;
+    }
+    Inflate.prototype._processChunk = function(chunk, flushFlag, asyncCb) {
+      if (typeof asyncCb === "function") {
+        return zlib2.Inflate._processChunk.call(this, chunk, flushFlag, asyncCb);
+      }
+      let self2 = this;
+      let availInBefore = chunk && chunk.length;
+      let availOutBefore = this._chunkSize - this._offset;
+      let leftToInflate = this._maxLength;
+      let inOff = 0;
+      let buffers = [];
+      let nread = 0;
+      let error;
+      this.on("error", function(err) {
+        error = err;
+      });
+      function handleChunk(availInAfter, availOutAfter) {
+        if (self2._hadError) {
+          return;
+        }
+        let have = availOutBefore - availOutAfter;
+        assert(have >= 0, "have should not go down");
+        if (have > 0) {
+          let out = self2._buffer.slice(self2._offset, self2._offset + have);
+          self2._offset += have;
+          if (out.length > leftToInflate) {
+            out = out.slice(0, leftToInflate);
+          }
+          buffers.push(out);
+          nread += out.length;
+          leftToInflate -= out.length;
+          if (leftToInflate === 0) {
+            return false;
+          }
+        }
+        if (availOutAfter === 0 || self2._offset >= self2._chunkSize) {
+          availOutBefore = self2._chunkSize;
+          self2._offset = 0;
+          self2._buffer = Buffer.allocUnsafe(self2._chunkSize);
+        }
+        if (availOutAfter === 0) {
+          inOff += availInBefore - availInAfter;
+          availInBefore = availInAfter;
+          return true;
+        }
+        return false;
+      }
+      assert(this._handle, "zlib binding closed");
+      let res;
+      do {
+        res = this._handle.writeSync(
+          flushFlag,
+          chunk,
+          // in
+          inOff,
+          // in_off
+          availInBefore,
+          // in_len
+          this._buffer,
+          // out
+          this._offset,
+          //out_off
+          availOutBefore
+        );
+        res = res || this._writeState;
+      } while (!this._hadError && handleChunk(res[0], res[1]));
+      if (this._hadError) {
+        throw error;
+      }
+      if (nread >= kMaxLength) {
+        _close(this);
+        throw new RangeError(
+          "Cannot create final Buffer. It would be larger than 0x" + kMaxLength.toString(16) + " bytes"
+        );
+      }
+      let buf = Buffer.concat(buffers, nread);
+      _close(this);
+      return buf;
+    };
+    util.inherits(Inflate, zlib2.Inflate);
+    function zlibBufferSync(engine2, buffer) {
+      if (typeof buffer === "string") {
+        buffer = Buffer.from(buffer);
+      }
+      if (!(buffer instanceof Buffer)) {
+        throw new TypeError("Not a string or buffer");
+      }
+      let flushFlag = engine2._finishFlushFlag;
+      if (flushFlag == null) {
+        flushFlag = zlib2.Z_FINISH;
+      }
+      return engine2._processChunk(buffer, flushFlag);
+    }
+    function inflateSync(buffer, opts2) {
+      return zlibBufferSync(new Inflate(opts2), buffer);
+    }
+    module2.exports = exports2 = inflateSync;
+    exports2.Inflate = Inflate;
+    exports2.createInflate = createInflate;
+    exports2.inflateSync = inflateSync;
+  }
+});
+
+// node_modules/pngjs/lib/sync-reader.js
+var require_sync_reader = __commonJS({
+  "node_modules/pngjs/lib/sync-reader.js"(exports2, module2) {
+    "use strict";
+    var SyncReader = module2.exports = function(buffer) {
+      this._buffer = buffer;
+      this._reads = [];
+    };
+    SyncReader.prototype.read = function(length2, callback) {
+      this._reads.push({
+        length: Math.abs(length2),
+        // if length < 0 then at most this length
+        allowLess: length2 < 0,
+        func: callback
+      });
+    };
+    SyncReader.prototype.process = function() {
+      while (this._reads.length > 0 && this._buffer.length) {
+        let read = this._reads[0];
+        if (this._buffer.length && (this._buffer.length >= read.length || read.allowLess)) {
+          this._reads.shift();
+          let buf = this._buffer;
+          this._buffer = buf.slice(read.length);
+          read.func.call(this, buf.slice(0, read.length));
+        } else {
+          break;
+        }
+      }
+      if (this._reads.length > 0) {
+        return new Error("There are some read requests waitng on finished stream");
+      }
+      if (this._buffer.length > 0) {
+        return new Error("unrecognised content at end of stream");
+      }
+    };
+  }
+});
+
+// node_modules/pngjs/lib/filter-parse-sync.js
+var require_filter_parse_sync = __commonJS({
+  "node_modules/pngjs/lib/filter-parse-sync.js"(exports2) {
+    "use strict";
+    var SyncReader = require_sync_reader();
+    var Filter = require_filter_parse();
+    exports2.process = function(inBuffer, bitmapInfo) {
+      let outBuffers = [];
+      let reader = new SyncReader(inBuffer);
+      let filter2 = new Filter(bitmapInfo, {
+        read: reader.read.bind(reader),
+        write: function(bufferPart) {
+          outBuffers.push(bufferPart);
+        },
+        complete: function() {
+        }
+      });
+      filter2.start();
+      reader.process();
+      return Buffer.concat(outBuffers);
+    };
+  }
+});
+
+// node_modules/pngjs/lib/parser-sync.js
+var require_parser_sync = __commonJS({
+  "node_modules/pngjs/lib/parser-sync.js"(exports2, module2) {
+    "use strict";
+    var hasSyncZlib = true;
+    var zlib2 = require("zlib");
+    var inflateSync = require_sync_inflate();
+    if (!zlib2.deflateSync) {
+      hasSyncZlib = false;
+    }
+    var SyncReader = require_sync_reader();
+    var FilterSync = require_filter_parse_sync();
+    var Parser = require_parser2();
+    var bitmapper = require_bitmapper();
+    var formatNormaliser = require_format_normaliser();
+    module2.exports = function(buffer, options) {
+      if (!hasSyncZlib) {
+        throw new Error(
+          "To use the sync capability of this library in old node versions, please pin pngjs to v2.3.0"
+        );
+      }
+      let err;
+      function handleError(_err_) {
+        err = _err_;
+      }
+      let metaData;
+      function handleMetaData(_metaData_) {
+        metaData = _metaData_;
+      }
+      function handleTransColor(transColor) {
+        metaData.transColor = transColor;
+      }
+      function handlePalette(palette) {
+        metaData.palette = palette;
+      }
+      function handleSimpleTransparency() {
+        metaData.alpha = true;
+      }
+      let gamma;
+      function handleGamma(_gamma_) {
+        gamma = _gamma_;
+      }
+      let inflateDataList = [];
+      function handleInflateData(inflatedData2) {
+        inflateDataList.push(inflatedData2);
+      }
+      let reader = new SyncReader(buffer);
+      let parser = new Parser(options, {
+        read: reader.read.bind(reader),
+        error: handleError,
+        metadata: handleMetaData,
+        gamma: handleGamma,
+        palette: handlePalette,
+        transColor: handleTransColor,
+        inflateData: handleInflateData,
+        simpleTransparency: handleSimpleTransparency
+      });
+      parser.start();
+      reader.process();
+      if (err) {
+        throw err;
+      }
+      let inflateData = Buffer.concat(inflateDataList);
+      inflateDataList.length = 0;
+      let inflatedData;
+      if (metaData.interlace) {
+        inflatedData = zlib2.inflateSync(inflateData);
+      } else {
+        let rowSize = (metaData.width * metaData.bpp * metaData.depth + 7 >> 3) + 1;
+        let imageSize = rowSize * metaData.height;
+        inflatedData = inflateSync(inflateData, {
+          chunkSize: imageSize,
+          maxLength: imageSize
+        });
+      }
+      inflateData = null;
+      if (!inflatedData || !inflatedData.length) {
+        throw new Error("bad png - invalid inflate data response");
+      }
+      let unfilteredData = FilterSync.process(inflatedData, metaData);
+      inflateData = null;
+      let bitmapData = bitmapper.dataToBitMap(unfilteredData, metaData);
+      unfilteredData = null;
+      let normalisedBitmapData = formatNormaliser(bitmapData, metaData);
+      metaData.data = normalisedBitmapData;
+      metaData.gamma = gamma || 0;
+      return metaData;
+    };
+  }
+});
+
+// node_modules/pngjs/lib/packer-sync.js
+var require_packer_sync = __commonJS({
+  "node_modules/pngjs/lib/packer-sync.js"(exports2, module2) {
+    "use strict";
+    var hasSyncZlib = true;
+    var zlib2 = require("zlib");
+    if (!zlib2.deflateSync) {
+      hasSyncZlib = false;
+    }
+    var constants2 = require_constants();
+    var Packer = require_packer();
+    module2.exports = function(metaData, opt) {
+      if (!hasSyncZlib) {
+        throw new Error(
+          "To use the sync capability of this library in old node versions, please pin pngjs to v2.3.0"
+        );
+      }
+      let options = opt || {};
+      let packer = new Packer(options);
+      let chunks = [];
+      chunks.push(Buffer.from(constants2.PNG_SIGNATURE));
+      chunks.push(packer.packIHDR(metaData.width, metaData.height));
+      if (metaData.gamma) {
+        chunks.push(packer.packGAMA(metaData.gamma));
+      }
+      let filteredData = packer.filterData(
+        metaData.data,
+        metaData.width,
+        metaData.height
+      );
+      let compressedData = zlib2.deflateSync(
+        filteredData,
+        packer.getDeflateOptions()
+      );
+      filteredData = null;
+      if (!compressedData || !compressedData.length) {
+        throw new Error("bad png - invalid compressed data response");
+      }
+      chunks.push(packer.packIDAT(compressedData));
+      chunks.push(packer.packIEND());
+      return Buffer.concat(chunks);
+    };
+  }
+});
+
+// node_modules/pngjs/lib/png-sync.js
+var require_png_sync = __commonJS({
+  "node_modules/pngjs/lib/png-sync.js"(exports2) {
+    "use strict";
+    var parse3 = require_parser_sync();
+    var pack = require_packer_sync();
+    exports2.read = function(buffer, options) {
+      return parse3(buffer, options || {});
+    };
+    exports2.write = function(png, options) {
+      return pack(png, options);
+    };
+  }
+});
+
+// node_modules/pngjs/lib/png.js
+var require_png = __commonJS({
+  "node_modules/pngjs/lib/png.js"(exports2) {
+    "use strict";
+    var util = require("util");
+    var Stream = require("stream");
+    var Parser = require_parser_async();
+    var Packer = require_packer_async();
+    var PNGSync = require_png_sync();
+    var PNG3 = exports2.PNG = function(options) {
+      Stream.call(this);
+      options = options || {};
+      this.width = options.width | 0;
+      this.height = options.height | 0;
+      this.data = this.width > 0 && this.height > 0 ? Buffer.alloc(4 * this.width * this.height) : null;
+      if (options.fill && this.data) {
+        this.data.fill(0);
+      }
+      this.gamma = 0;
+      this.readable = this.writable = true;
+      this._parser = new Parser(options);
+      this._parser.on("error", this.emit.bind(this, "error"));
+      this._parser.on("close", this._handleClose.bind(this));
+      this._parser.on("metadata", this._metadata.bind(this));
+      this._parser.on("gamma", this._gamma.bind(this));
+      this._parser.on(
+        "parsed",
+        function(data) {
+          this.data = data;
+          this.emit("parsed", data);
+        }.bind(this)
+      );
+      this._packer = new Packer(options);
+      this._packer.on("data", this.emit.bind(this, "data"));
+      this._packer.on("end", this.emit.bind(this, "end"));
+      this._parser.on("close", this._handleClose.bind(this));
+      this._packer.on("error", this.emit.bind(this, "error"));
+    };
+    util.inherits(PNG3, Stream);
+    PNG3.sync = PNGSync;
+    PNG3.prototype.pack = function() {
+      if (!this.data || !this.data.length) {
+        this.emit("error", "No data provided");
+        return this;
+      }
+      process.nextTick(
+        function() {
+          this._packer.pack(this.data, this.width, this.height, this.gamma);
+        }.bind(this)
+      );
+      return this;
+    };
+    PNG3.prototype.parse = function(data, callback) {
+      if (callback) {
+        let onParsed, onError;
+        onParsed = function(parsedData) {
+          this.removeListener("error", onError);
+          this.data = parsedData;
+          callback(null, this);
+        }.bind(this);
+        onError = function(err) {
+          this.removeListener("parsed", onParsed);
+          callback(err, null);
+        }.bind(this);
+        this.once("parsed", onParsed);
+        this.once("error", onError);
+      }
+      this.end(data);
+      return this;
+    };
+    PNG3.prototype.write = function(data) {
+      this._parser.write(data);
+      return true;
+    };
+    PNG3.prototype.end = function(data) {
+      this._parser.end(data);
+    };
+    PNG3.prototype._metadata = function(metadata) {
+      this.width = metadata.width;
+      this.height = metadata.height;
+      this.emit("metadata", metadata);
+    };
+    PNG3.prototype._gamma = function(gamma) {
+      this.gamma = gamma;
+    };
+    PNG3.prototype._handleClose = function() {
+      if (!this._parser.writable && !this._packer.readable) {
+        this.emit("close");
+      }
+    };
+    PNG3.bitblt = function(src, dst, srcX, srcY, width, height2, deltaX, deltaY) {
+      srcX |= 0;
+      srcY |= 0;
+      width |= 0;
+      height2 |= 0;
+      deltaX |= 0;
+      deltaY |= 0;
+      if (srcX > src.width || srcY > src.height || srcX + width > src.width || srcY + height2 > src.height) {
+        throw new Error("bitblt reading outside image");
+      }
+      if (deltaX > dst.width || deltaY > dst.height || deltaX + width > dst.width || deltaY + height2 > dst.height) {
+        throw new Error("bitblt writing outside image");
+      }
+      for (let y3 = 0; y3 < height2; y3++) {
+        src.data.copy(
+          dst.data,
+          (deltaY + y3) * dst.width + deltaX << 2,
+          (srcY + y3) * src.width + srcX << 2,
+          (srcY + y3) * src.width + srcX + width << 2
+        );
+      }
+    };
+    PNG3.prototype.bitblt = function(dst, srcX, srcY, width, height2, deltaX, deltaY) {
+      PNG3.bitblt(this, dst, srcX, srcY, width, height2, deltaX, deltaY);
+      return this;
+    };
+    PNG3.adjustGamma = function(src) {
+      if (src.gamma) {
+        for (let y3 = 0; y3 < src.height; y3++) {
+          for (let x = 0; x < src.width; x++) {
+            let idx = src.width * y3 + x << 2;
+            for (let i4 = 0; i4 < 3; i4++) {
+              let sample = src.data[idx + i4] / 255;
+              sample = Math.pow(sample, 1 / 2.2 / src.gamma);
+              src.data[idx + i4] = Math.round(sample * 255);
+            }
+          }
+        }
+        src.gamma = 0;
+      }
+    };
+    PNG3.prototype.adjustGamma = function() {
+      PNG3.adjustGamma(this);
+    };
+  }
+});
+
+// node_modules/qrcode/lib/renderer/utils.js
+var require_utils2 = __commonJS({
+  "node_modules/qrcode/lib/renderer/utils.js"(exports2) {
+    function hex2rgba(hex) {
+      if (typeof hex === "number") {
+        hex = hex.toString();
+      }
+      if (typeof hex !== "string") {
+        throw new Error("Color should be defined as hex string");
+      }
+      let hexCode = hex.slice().replace("#", "").split("");
+      if (hexCode.length < 3 || hexCode.length === 5 || hexCode.length > 8) {
+        throw new Error("Invalid hex color: " + hex);
+      }
+      if (hexCode.length === 3 || hexCode.length === 4) {
+        hexCode = Array.prototype.concat.apply([], hexCode.map(function(c4) {
+          return [c4, c4];
+        }));
+      }
+      if (hexCode.length === 6) hexCode.push("F", "F");
+      const hexValue = parseInt(hexCode.join(""), 16);
+      return {
+        r: hexValue >> 24 & 255,
+        g: hexValue >> 16 & 255,
+        b: hexValue >> 8 & 255,
+        a: hexValue & 255,
+        hex: "#" + hexCode.slice(0, 6).join("")
+      };
+    }
+    exports2.getOptions = function getOptions(options) {
+      if (!options) options = {};
+      if (!options.color) options.color = {};
+      const margin = typeof options.margin === "undefined" || options.margin === null || options.margin < 0 ? 4 : options.margin;
+      const width = options.width && options.width >= 21 ? options.width : void 0;
+      const scale2 = options.scale || 4;
+      return {
+        width,
+        scale: width ? 4 : scale2,
+        margin,
+        color: {
+          dark: hex2rgba(options.color.dark || "#000000ff"),
+          light: hex2rgba(options.color.light || "#ffffffff")
+        },
+        type: options.type,
+        rendererOpts: options.rendererOpts || {}
+      };
+    };
+    exports2.getScale = function getScale(qrSize, opts2) {
+      return opts2.width && opts2.width >= qrSize + opts2.margin * 2 ? opts2.width / (qrSize + opts2.margin * 2) : opts2.scale;
+    };
+    exports2.getImageWidth = function getImageWidth(qrSize, opts2) {
+      const scale2 = exports2.getScale(qrSize, opts2);
+      return Math.floor((qrSize + opts2.margin * 2) * scale2);
+    };
+    exports2.qrToImageData = function qrToImageData(imgData, qr, opts2) {
+      const size = qr.modules.size;
+      const data = qr.modules.data;
+      const scale2 = exports2.getScale(size, opts2);
+      const symbolSize = Math.floor((size + opts2.margin * 2) * scale2);
+      const scaledMargin = opts2.margin * scale2;
+      const palette = [opts2.color.light, opts2.color.dark];
+      for (let i4 = 0; i4 < symbolSize; i4++) {
+        for (let j = 0; j < symbolSize; j++) {
+          let posDst = (i4 * symbolSize + j) * 4;
+          let pxColor = opts2.color.light;
+          if (i4 >= scaledMargin && j >= scaledMargin && i4 < symbolSize - scaledMargin && j < symbolSize - scaledMargin) {
+            const iSrc = Math.floor((i4 - scaledMargin) / scale2);
+            const jSrc = Math.floor((j - scaledMargin) / scale2);
+            pxColor = palette[data[iSrc * size + jSrc] ? 1 : 0];
+          }
+          imgData[posDst++] = pxColor.r;
+          imgData[posDst++] = pxColor.g;
+          imgData[posDst++] = pxColor.b;
+          imgData[posDst] = pxColor.a;
+        }
+      }
+    };
+  }
+});
+
+// node_modules/qrcode/lib/renderer/png.js
+var require_png2 = __commonJS({
+  "node_modules/qrcode/lib/renderer/png.js"(exports2) {
+    var fs5 = require("fs");
+    var PNG3 = require_png().PNG;
+    var Utils = require_utils2();
+    exports2.render = function render4(qrData, options) {
+      const opts2 = Utils.getOptions(options);
+      const pngOpts = opts2.rendererOpts;
+      const size = Utils.getImageWidth(qrData.modules.size, opts2);
+      pngOpts.width = size;
+      pngOpts.height = size;
+      const pngImage = new PNG3(pngOpts);
+      Utils.qrToImageData(pngImage.data, qrData, opts2);
+      return pngImage;
+    };
+    exports2.renderToDataURL = function renderToDataURL(qrData, options, cb) {
+      if (typeof cb === "undefined") {
+        cb = options;
+        options = void 0;
+      }
+      exports2.renderToBuffer(qrData, options, function(err, output) {
+        if (err) cb(err);
+        let url2 = "data:image/png;base64,";
+        url2 += output.toString("base64");
+        cb(null, url2);
+      });
+    };
+    exports2.renderToBuffer = function renderToBuffer2(qrData, options, cb) {
+      if (typeof cb === "undefined") {
+        cb = options;
+        options = void 0;
+      }
+      const png = exports2.render(qrData, options);
+      const buffer = [];
+      png.on("error", cb);
+      png.on("data", function(data) {
+        buffer.push(data);
+      });
+      png.on("end", function() {
+        cb(null, Buffer.concat(buffer));
+      });
+      png.pack();
+    };
+    exports2.renderToFile = function renderToFile2(path2, qrData, options, cb) {
+      if (typeof cb === "undefined") {
+        cb = options;
+        options = void 0;
+      }
+      let called = false;
+      const done = (...args) => {
+        if (called) return;
+        called = true;
+        cb.apply(null, args);
+      };
+      const stream2 = fs5.createWriteStream(path2);
+      stream2.on("error", done);
+      stream2.on("close", done);
+      exports2.renderToFileStream(stream2, qrData, options);
+    };
+    exports2.renderToFileStream = function renderToFileStream(stream2, qrData, options) {
+      const png = exports2.render(qrData, options);
+      png.pack().pipe(stream2);
+    };
+  }
+});
+
+// node_modules/qrcode/lib/renderer/utf8.js
+var require_utf8 = __commonJS({
+  "node_modules/qrcode/lib/renderer/utf8.js"(exports2) {
+    var Utils = require_utils2();
+    var BLOCK_CHAR = {
+      WW: " ",
+      WB: "\u2584",
+      BB: "\u2588",
+      BW: "\u2580"
+    };
+    var INVERTED_BLOCK_CHAR = {
+      BB: " ",
+      BW: "\u2584",
+      WW: "\u2588",
+      WB: "\u2580"
+    };
+    function getBlockChar(top, bottom, blocks) {
+      if (top && bottom) return blocks.BB;
+      if (top && !bottom) return blocks.BW;
+      if (!top && bottom) return blocks.WB;
+      return blocks.WW;
+    }
+    exports2.render = function(qrData, options, cb) {
+      const opts2 = Utils.getOptions(options);
+      let blocks = BLOCK_CHAR;
+      if (opts2.color.dark.hex === "#ffffff" || opts2.color.light.hex === "#000000") {
+        blocks = INVERTED_BLOCK_CHAR;
+      }
+      const size = qrData.modules.size;
+      const data = qrData.modules.data;
+      let output = "";
+      let hMargin = Array(size + opts2.margin * 2 + 1).join(blocks.WW);
+      hMargin = Array(opts2.margin / 2 + 1).join(hMargin + "\n");
+      const vMargin = Array(opts2.margin + 1).join(blocks.WW);
+      output += hMargin;
+      for (let i4 = 0; i4 < size; i4 += 2) {
+        output += vMargin;
+        for (let j = 0; j < size; j++) {
+          const topModule = data[i4 * size + j];
+          const bottomModule = data[(i4 + 1) * size + j];
+          output += getBlockChar(topModule, bottomModule, blocks);
+        }
+        output += vMargin + "\n";
+      }
+      output += hMargin.slice(0, -1);
+      if (typeof cb === "function") {
+        cb(null, output);
+      }
+      return output;
+    };
+    exports2.renderToFile = function renderToFile2(path2, qrData, options, cb) {
+      if (typeof cb === "undefined") {
+        cb = options;
+        options = void 0;
+      }
+      const fs5 = require("fs");
+      const utf8 = exports2.render(qrData, options);
+      fs5.writeFile(path2, utf8, cb);
+    };
+  }
+});
+
+// node_modules/qrcode/lib/renderer/terminal/terminal.js
+var require_terminal = __commonJS({
+  "node_modules/qrcode/lib/renderer/terminal/terminal.js"(exports2) {
+    exports2.render = function(qrData, options, cb) {
+      const size = qrData.modules.size;
+      const data = qrData.modules.data;
+      const black2 = "\x1B[40m  \x1B[0m";
+      const white = "\x1B[47m  \x1B[0m";
+      let output = "";
+      const hMargin = Array(size + 3).join(white);
+      const vMargin = Array(2).join(white);
+      output += hMargin + "\n";
+      for (let i4 = 0; i4 < size; ++i4) {
+        output += white;
+        for (let j = 0; j < size; j++) {
+          output += data[i4 * size + j] ? black2 : white;
+        }
+        output += vMargin + "\n";
+      }
+      output += hMargin + "\n";
+      if (typeof cb === "function") {
+        cb(null, output);
+      }
+      return output;
+    };
+  }
+});
+
+// node_modules/qrcode/lib/renderer/terminal/terminal-small.js
+var require_terminal_small = __commonJS({
+  "node_modules/qrcode/lib/renderer/terminal/terminal-small.js"(exports2) {
+    var backgroundWhite = "\x1B[47m";
+    var backgroundBlack = "\x1B[40m";
+    var foregroundWhite = "\x1B[37m";
+    var foregroundBlack = "\x1B[30m";
+    var reset = "\x1B[0m";
+    var lineSetupNormal = backgroundWhite + foregroundBlack;
+    var lineSetupInverse = backgroundBlack + foregroundWhite;
+    var createPalette = function(lineSetup, foregroundWhite2, foregroundBlack2) {
+      return {
+        // 1 ... white, 2 ... black, 0 ... transparent (default)
+        "00": reset + " " + lineSetup,
+        "01": reset + foregroundWhite2 + "\u2584" + lineSetup,
+        "02": reset + foregroundBlack2 + "\u2584" + lineSetup,
+        10: reset + foregroundWhite2 + "\u2580" + lineSetup,
+        11: " ",
+        12: "\u2584",
+        20: reset + foregroundBlack2 + "\u2580" + lineSetup,
+        21: "\u2580",
+        22: "\u2588"
+      };
+    };
+    var mkCodePixel = function(modules, size, x, y3) {
+      const sizePlus = size + 1;
+      if (x >= sizePlus || y3 >= sizePlus || y3 < -1 || x < -1) return "0";
+      if (x >= size || y3 >= size || y3 < 0 || x < 0) return "1";
+      const idx = y3 * size + x;
+      return modules[idx] ? "2" : "1";
+    };
+    var mkCode = function(modules, size, x, y3) {
+      return mkCodePixel(modules, size, x, y3) + mkCodePixel(modules, size, x, y3 + 1);
+    };
+    exports2.render = function(qrData, options, cb) {
+      const size = qrData.modules.size;
+      const data = qrData.modules.data;
+      const inverse = !!(options && options.inverse);
+      const lineSetup = options && options.inverse ? lineSetupInverse : lineSetupNormal;
+      const white = inverse ? foregroundBlack : foregroundWhite;
+      const black2 = inverse ? foregroundWhite : foregroundBlack;
+      const palette = createPalette(lineSetup, white, black2);
+      const newLine = reset + "\n" + lineSetup;
+      let output = lineSetup;
+      for (let y3 = -1; y3 < size + 1; y3 += 2) {
+        for (let x = -1; x < size; x++) {
+          output += palette[mkCode(data, size, x, y3)];
+        }
+        output += palette[mkCode(data, size, size, y3)] + newLine;
+      }
+      output += reset;
+      if (typeof cb === "function") {
+        cb(null, output);
+      }
+      return output;
+    };
+  }
+});
+
+// node_modules/qrcode/lib/renderer/terminal.js
+var require_terminal2 = __commonJS({
+  "node_modules/qrcode/lib/renderer/terminal.js"(exports2) {
+    var big = require_terminal();
+    var small = require_terminal_small();
+    exports2.render = function(qrData, options, cb) {
+      if (options && options.small) {
+        return small.render(qrData, options, cb);
+      }
+      return big.render(qrData, options, cb);
+    };
+  }
+});
+
+// node_modules/qrcode/lib/renderer/svg-tag.js
+var require_svg_tag = __commonJS({
+  "node_modules/qrcode/lib/renderer/svg-tag.js"(exports2) {
+    var Utils = require_utils2();
+    function getColorAttrib(color, attrib) {
+      const alpha = color.a / 255;
+      const str = attrib + '="' + color.hex + '"';
+      return alpha < 1 ? str + " " + attrib + '-opacity="' + alpha.toFixed(2).slice(1) + '"' : str;
+    }
+    function svgCmd(cmd, x, y3) {
+      let str = cmd + x;
+      if (typeof y3 !== "undefined") str += " " + y3;
+      return str;
+    }
+    function qrToPath(data, size, margin) {
+      let path2 = "";
+      let moveBy = 0;
+      let newRow = false;
+      let lineLength = 0;
+      for (let i4 = 0; i4 < data.length; i4++) {
+        const col = Math.floor(i4 % size);
+        const row = Math.floor(i4 / size);
+        if (!col && !newRow) newRow = true;
+        if (data[i4]) {
+          lineLength++;
+          if (!(i4 > 0 && col > 0 && data[i4 - 1])) {
+            path2 += newRow ? svgCmd("M", col + margin, 0.5 + row + margin) : svgCmd("m", moveBy, 0);
+            moveBy = 0;
+            newRow = false;
+          }
+          if (!(col + 1 < size && data[i4 + 1])) {
+            path2 += svgCmd("h", lineLength);
+            lineLength = 0;
+          }
+        } else {
+          moveBy++;
+        }
+      }
+      return path2;
+    }
+    exports2.render = function render4(qrData, options, cb) {
+      const opts2 = Utils.getOptions(options);
+      const size = qrData.modules.size;
+      const data = qrData.modules.data;
+      const qrcodesize = size + opts2.margin * 2;
+      const bg = !opts2.color.light.a ? "" : "<path " + getColorAttrib(opts2.color.light, "fill") + ' d="M0 0h' + qrcodesize + "v" + qrcodesize + 'H0z"/>';
+      const path2 = "<path " + getColorAttrib(opts2.color.dark, "stroke") + ' d="' + qrToPath(data, size, opts2.margin) + '"/>';
+      const viewBox = 'viewBox="0 0 ' + qrcodesize + " " + qrcodesize + '"';
+      const width = !opts2.width ? "" : 'width="' + opts2.width + '" height="' + opts2.width + '" ';
+      const svgTag = '<svg xmlns="http://www.w3.org/2000/svg" ' + width + viewBox + ' shape-rendering="crispEdges">' + bg + path2 + "</svg>\n";
+      if (typeof cb === "function") {
+        cb(null, svgTag);
+      }
+      return svgTag;
+    };
+  }
+});
+
+// node_modules/qrcode/lib/renderer/svg.js
+var require_svg = __commonJS({
+  "node_modules/qrcode/lib/renderer/svg.js"(exports2) {
+    var svgTagRenderer = require_svg_tag();
+    exports2.render = svgTagRenderer.render;
+    exports2.renderToFile = function renderToFile2(path2, qrData, options, cb) {
+      if (typeof cb === "undefined") {
+        cb = options;
+        options = void 0;
+      }
+      const fs5 = require("fs");
+      const svgTag = exports2.render(qrData, options);
+      const xmlStr = '<?xml version="1.0" encoding="utf-8"?><!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">' + svgTag;
+      fs5.writeFile(path2, xmlStr, cb);
+    };
+  }
+});
+
+// node_modules/qrcode/lib/renderer/canvas.js
+var require_canvas = __commonJS({
+  "node_modules/qrcode/lib/renderer/canvas.js"(exports2) {
+    var Utils = require_utils2();
+    function clearCanvas(ctx, canvas, size) {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      if (!canvas.style) canvas.style = {};
+      canvas.height = size;
+      canvas.width = size;
+      canvas.style.height = size + "px";
+      canvas.style.width = size + "px";
+    }
+    function getCanvasElement() {
+      try {
+        return document.createElement("canvas");
+      } catch (e4) {
+        throw new Error("You need to specify a canvas element");
+      }
+    }
+    exports2.render = function render4(qrData, canvas, options) {
+      let opts2 = options;
+      let canvasEl = canvas;
+      if (typeof opts2 === "undefined" && (!canvas || !canvas.getContext)) {
+        opts2 = canvas;
+        canvas = void 0;
+      }
+      if (!canvas) {
+        canvasEl = getCanvasElement();
+      }
+      opts2 = Utils.getOptions(opts2);
+      const size = Utils.getImageWidth(qrData.modules.size, opts2);
+      const ctx = canvasEl.getContext("2d");
+      const image = ctx.createImageData(size, size);
+      Utils.qrToImageData(image.data, qrData, opts2);
+      clearCanvas(ctx, canvasEl, size);
+      ctx.putImageData(image, 0, 0);
+      return canvasEl;
+    };
+    exports2.renderToDataURL = function renderToDataURL(qrData, canvas, options) {
+      let opts2 = options;
+      if (typeof opts2 === "undefined" && (!canvas || !canvas.getContext)) {
+        opts2 = canvas;
+        canvas = void 0;
+      }
+      if (!opts2) opts2 = {};
+      const canvasEl = exports2.render(qrData, canvas, opts2);
+      const type = opts2.type || "image/png";
+      const rendererOpts = opts2.rendererOpts || {};
+      return canvasEl.toDataURL(type, rendererOpts.quality);
+    };
+  }
+});
+
+// node_modules/qrcode/lib/browser.js
+var require_browser = __commonJS({
+  "node_modules/qrcode/lib/browser.js"(exports2) {
+    var canPromise = require_can_promise();
+    var QRCode2 = require_qrcode();
+    var CanvasRenderer = require_canvas();
+    var SvgRenderer = require_svg_tag();
+    function renderCanvas2(renderFunc, canvas, text, opts2, cb) {
+      const args = [].slice.call(arguments, 1);
+      const argsNum = args.length;
+      const isLastArgCb = typeof args[argsNum - 1] === "function";
+      if (!isLastArgCb && !canPromise()) {
+        throw new Error("Callback required as last argument");
+      }
+      if (isLastArgCb) {
+        if (argsNum < 2) {
+          throw new Error("Too few arguments provided");
+        }
+        if (argsNum === 2) {
+          cb = text;
+          text = canvas;
+          canvas = opts2 = void 0;
+        } else if (argsNum === 3) {
+          if (canvas.getContext && typeof cb === "undefined") {
+            cb = opts2;
+            opts2 = void 0;
+          } else {
+            cb = opts2;
+            opts2 = text;
+            text = canvas;
+            canvas = void 0;
+          }
+        }
+      } else {
+        if (argsNum < 1) {
+          throw new Error("Too few arguments provided");
+        }
+        if (argsNum === 1) {
+          text = canvas;
+          canvas = opts2 = void 0;
+        } else if (argsNum === 2 && !canvas.getContext) {
+          opts2 = text;
+          text = canvas;
+          canvas = void 0;
+        }
+        return new Promise(function(resolve3, reject) {
+          try {
+            const data = QRCode2.create(text, opts2);
+            resolve3(renderFunc(data, canvas, opts2));
+          } catch (e4) {
+            reject(e4);
+          }
+        });
+      }
+      try {
+        const data = QRCode2.create(text, opts2);
+        cb(null, renderFunc(data, canvas, opts2));
+      } catch (e4) {
+        cb(e4);
+      }
+    }
+    exports2.create = QRCode2.create;
+    exports2.toCanvas = renderCanvas2.bind(null, CanvasRenderer.render);
+    exports2.toDataURL = renderCanvas2.bind(null, CanvasRenderer.renderToDataURL);
+    exports2.toString = renderCanvas2.bind(null, function(data, _, opts2) {
+      return SvgRenderer.render(data, opts2);
+    });
+  }
+});
+
+// node_modules/qrcode/lib/server.js
+var require_server = __commonJS({
+  "node_modules/qrcode/lib/server.js"(exports2) {
+    var canPromise = require_can_promise();
+    var QRCode2 = require_qrcode();
+    var PngRenderer = require_png2();
+    var Utf8Renderer = require_utf8();
+    var TerminalRenderer = require_terminal2();
+    var SvgRenderer = require_svg();
+    function checkParams(text, opts2, cb) {
+      if (typeof text === "undefined") {
+        throw new Error("String required as first argument");
+      }
+      if (typeof cb === "undefined") {
+        cb = opts2;
+        opts2 = {};
+      }
+      if (typeof cb !== "function") {
+        if (!canPromise()) {
+          throw new Error("Callback required as last argument");
+        } else {
+          opts2 = cb || {};
+          cb = null;
+        }
+      }
+      return {
+        opts: opts2,
+        cb
+      };
+    }
+    function getTypeFromFilename(path2) {
+      return path2.slice((path2.lastIndexOf(".") - 1 >>> 0) + 2).toLowerCase();
+    }
+    function getRendererFromType(type) {
+      switch (type) {
+        case "svg":
+          return SvgRenderer;
+        case "txt":
+        case "utf8":
+          return Utf8Renderer;
+        case "png":
+        case "image/png":
+        default:
+          return PngRenderer;
+      }
+    }
+    function getStringRendererFromType(type) {
+      switch (type) {
+        case "svg":
+          return SvgRenderer;
+        case "terminal":
+          return TerminalRenderer;
+        case "utf8":
+        default:
+          return Utf8Renderer;
+      }
+    }
+    function render4(renderFunc, text, params) {
+      if (!params.cb) {
+        return new Promise(function(resolve3, reject) {
+          try {
+            const data = QRCode2.create(text, params.opts);
+            return renderFunc(data, params.opts, function(err, data2) {
+              return err ? reject(err) : resolve3(data2);
+            });
+          } catch (e4) {
+            reject(e4);
+          }
+        });
+      }
+      try {
+        const data = QRCode2.create(text, params.opts);
+        return renderFunc(data, params.opts, params.cb);
+      } catch (e4) {
+        params.cb(e4);
+      }
+    }
+    exports2.create = QRCode2.create;
+    exports2.toCanvas = require_browser().toCanvas;
+    exports2.toString = function toString(text, opts2, cb) {
+      const params = checkParams(text, opts2, cb);
+      const type = params.opts ? params.opts.type : void 0;
+      const renderer3 = getStringRendererFromType(type);
+      return render4(renderer3.render, text, params);
+    };
+    exports2.toDataURL = function toDataURL(text, opts2, cb) {
+      const params = checkParams(text, opts2, cb);
+      const renderer3 = getRendererFromType(params.opts.type);
+      return render4(renderer3.renderToDataURL, text, params);
+    };
+    exports2.toBuffer = function toBuffer(text, opts2, cb) {
+      const params = checkParams(text, opts2, cb);
+      const renderer3 = getRendererFromType(params.opts.type);
+      return render4(renderer3.renderToBuffer, text, params);
+    };
+    exports2.toFile = function toFile(path2, text, opts2, cb) {
+      if (typeof path2 !== "string" || !(typeof text === "string" || typeof text === "object")) {
+        throw new Error("Invalid argument");
+      }
+      if (arguments.length < 3 && !canPromise()) {
+        throw new Error("Too few arguments provided");
+      }
+      const params = checkParams(text, opts2, cb);
+      const type = params.opts.type || getTypeFromFilename(path2);
+      const renderer3 = getRendererFromType(type);
+      const renderToFile2 = renderer3.renderToFile.bind(null, path2);
+      return render4(renderToFile2, text, params);
+    };
+    exports2.toFileStream = function toFileStream(stream2, text, opts2) {
+      if (arguments.length < 2) {
+        throw new Error("Too few arguments provided");
+      }
+      const params = checkParams(text, opts2, stream2.emit.bind(stream2, "error"));
+      const renderer3 = getRendererFromType("png");
+      const renderToFileStream = renderer3.renderToFileStream.bind(null, stream2);
+      render4(renderToFileStream, text, params);
+    };
+  }
+});
+
+// node_modules/qrcode/lib/index.js
+var require_lib = __commonJS({
+  "node_modules/qrcode/lib/index.js"(exports2, module2) {
+    module2.exports = require_server();
+  }
+});
+
 // src/vercel.ts
 var vercel_exports = {};
 __export(vercel_exports, {
@@ -189635,6 +194168,12 @@ var BROCHURE_PAGE = {
   paddingBottom: 76,
   /** Width of the inner content column. */
   contentWidth: 1284,
+  /**
+   * Side of the QR symbol pinned in the top-right corner. It also fixes the
+   * width of the whole QR block (the caption underneath is narrower), which is
+   * what the header title has to keep clear of.
+   */
+  qrSize: 132,
   /** Vertical gap between top-level sections inside the content column. */
   sectionGap: 50,
   /** Gap between the header block, the content column and the footer. */
@@ -189689,6 +194228,9 @@ var DIFFICULTY_FILL = {
 
 // src/brochure/styles.ts
 var sans = BROCHURE_FONT.sans;
+var TITLE_BLOCK_WIDTH = 1107;
+var TITLE_QR_GAP = 32;
+var TITLE_BLOCK_WIDTH_WITH_QR = BROCHURE_PAGE.width - 2 * (BROCHURE_PAGE.paddingX + BROCHURE_PAGE.qrSize + TITLE_QR_GAP);
 var styles = StyleSheet.create({
   page: {
     backgroundColor: BROCHURE_COLOR.white,
@@ -189701,7 +194243,14 @@ var styles = StyleSheet.create({
   /* ── Header ─────────────────────────────────────────────────────────── */
   header: { alignItems: "center", gap: 40 },
   brandRow: { flexDirection: "row", alignItems: "center", gap: 12, height: 34 },
-  titleBlock: { alignItems: "center", gap: 16, width: 1107 },
+  titleBlock: { alignItems: "center", gap: 16, width: TITLE_BLOCK_WIDTH },
+  /**
+   * The QR sits in the top-right corner outside the flow, so a full-width title
+   * runs straight underneath it. Narrowing the block by the corner it has to
+   * clear — on both sides, so the title stays centred on the page — makes long
+   * titles wrap before they reach the code instead of colliding with it.
+   */
+  titleBlockWithQr: { width: TITLE_BLOCK_WIDTH_WITH_QR },
   subtitle: {
     fontSize: 24,
     fontStyle: "italic",
@@ -189894,6 +194443,9 @@ var styles = StyleSheet.create({
     position: "absolute",
     top: BROCHURE_PAGE.paddingTop,
     right: BROCHURE_PAGE.paddingX,
+    // Fixed rather than shrink-wrapped, so the corner the title has to clear is
+    // the same width whatever the caption says.
+    width: BROCHURE_PAGE.qrSize,
     alignItems: "center",
     gap: 6
   },
@@ -189999,15 +194551,18 @@ var GradientText = ({
   const channels = (hex) => [1, 3, 5].map((offset2) => parseInt(hex.slice(offset2, offset2 + 2), 16));
   const [r1, g1, b1] = channels(from);
   const [r22, g22, b22] = channels(to);
-  const characters2 = Array.from(value2);
-  return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Text, { style, children: characters2.map((character, index2) => {
-    const position = characters2.length > 1 ? index2 / (characters2.length - 1) : 0;
+  const tokens = value2.split(/(\s+)/).filter(Boolean);
+  const span = Math.max(1, value2.length);
+  let consumed = 0;
+  return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Text, { style, children: tokens.map((token, index2) => {
+    const position = (consumed + token.length / 2) / span;
+    consumed += token.length;
     const t4 = Math.min(1, Math.max(0, (position - start2) / (end2 - start2)));
     const mix = (a4, b3) => Math.round(a4 + (b3 - a4) * t4);
-    return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Text, { style: { color: `rgb(${mix(r1, r22)}, ${mix(g1, g22)}, ${mix(b1, b22)})` }, children: character }, index2);
+    return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Text, { style: { color: `rgb(${mix(r1, r22)}, ${mix(g1, g22)}, ${mix(b1, b22)})` }, children: token }, index2);
   }) });
 };
-var QR_SIZE = 132;
+var QR_SIZE = BROCHURE_PAGE.qrSize;
 var QR_QUIET_MODULES = 2;
 var QR_LOGO_RATIO = 0.24;
 var QrCode = ({ matrix, url: url2 }) => {
@@ -190065,9 +194620,9 @@ var Section = ({ heading, children }) => /* @__PURE__ */ (0, import_jsx_runtime.
   /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Text, { style: styles.sectionHeading, children: heading }),
   children
 ] });
-var Header = ({ model }) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(View, { style: styles.header, children: [
+var Header = ({ model, hasQr }) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(View, { style: styles.header, children: [
   /* @__PURE__ */ (0, import_jsx_runtime.jsx)(View, { style: styles.brandRow, children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Svg, { viewBox: LOGO_VIEWBOX, style: { width: 172, height: 32 }, children: LOGO_PATHS.map((d3, index2) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Path, { d: d3, fill: BROCHURE_COLOR.violet }, index2)) }) }),
-  /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(View, { style: styles.titleBlock, children: [
+  /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(View, { style: hasQr ? [styles.titleBlock, styles.titleBlockWithQr] : styles.titleBlock, children: [
     /* @__PURE__ */ (0, import_jsx_runtime.jsx)(
       GradientText,
       {
@@ -190249,9 +194804,10 @@ function PackageBrochureDocument({ model, images, height: height2, qr, packageUr
     model.quote ? void 0 : "Prices are per person and set by the number of adults.",
     model.quote ? void 0 : model.concessions
   ].filter(Boolean);
+  const showQr = Boolean(qr && packageUrl);
   return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Document, { title: model.title, author: model.agencyName || "Travories", creator: "Travories", children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Page, { size: { width: BROCHURE_PAGE.width, height: height2 }, style: styles.page, children: [
-    qr && packageUrl && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(QrCode, { matrix: qr, url: packageUrl }),
-    /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Header, { model }),
+    showQr && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(QrCode, { matrix: qr, url: packageUrl }),
+    /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Header, { model, hasQr: showQr }),
     /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(View, { style: styles.content, children: [
       /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Gallery, { ...shared }),
       model.overview.length > 0 && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Section, { heading: "Overview", children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(View, { style: { gap: 10 }, children: model.overview.map((paragraph, index2) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Text, { style: styles.overviewCopy, children: paragraph }, index2)) }) }),
@@ -190305,6 +194861,7 @@ var LABELS = {
   children: ["Child", "Children"],
   infants: ["Infant", "Infants"]
 };
+var hasPartyCounts = (party) => !!party && (party.adults || 0) + (party.children || 0) + (party.infants || 0) > 0;
 var plural = (type, count) => LABELS[type][count === 1 ? 0 : 1];
 var fares = (pkg) => (pkg.prices ?? []).map((tier) => Number(tier.pricePerPerson ?? 0));
 function fareFor(pkg, groupSize) {
@@ -190516,6 +195073,7 @@ var tint = (hex, alpha) => {
   return `rgba(${r4}, ${g3}, ${b3}, ${alpha})`;
 };
 function buildBrochureModel(pkg, party) {
+  const priced = hasPartyCounts(party);
   const photos = [pkg.packageCover, ...pkg.packageMedia ?? []].map(mediaUrl).filter(Boolean);
   const gallery = photos.length ? Array.from({ length: 4 }, (_, index2) => photos[index2 % photos.length]) : [];
   const nights = Math.max(0, (pkg.totalDays || 0) - 1);
@@ -190579,9 +195137,11 @@ function buildBrochureModel(pkg, party) {
     days: (pkg.days ?? []).map(toDay),
     addons,
     services,
-    quote: party ? quoteParty(pkg, party) : void 0,
-    travellers: party ? describeParty(party) : "",
-    arrival: party ? formatArrivalDate(party.arrivalDate) : "",
+    // Head count and arrival date are asked independently, so a brochure can
+    // carry a date with generic tier pricing, or a quote with open dates.
+    quote: priced ? quoteParty(pkg, party) : void 0,
+    travellers: priced ? describeParty(party) : "",
+    arrival: formatArrivalDate(party?.arrivalDate),
     imageUrls: []
   };
   model.imageUrls = Array.from(
@@ -190616,6 +195176,21 @@ async function fitToOnePage(renderAt) {
   return { output: best.output, height: high, pages: best.pages };
 }
 
+// src/brochure/qr.ts
+var import_qrcode = __toESM(require_lib(), 1);
+function buildQrMatrix(text) {
+  try {
+    const { modules } = import_qrcode.default.create(text, { errorCorrectionLevel: "H" });
+    const size = modules.size;
+    const data = modules.data;
+    const dark = new Array(size * size);
+    for (let index2 = 0; index2 < size * size; index2 += 1) dark[index2] = data[index2] === 1;
+    return { size, dark };
+  } catch {
+    return null;
+  }
+}
+
 // src/vercel.ts
 var MAX_IMAGE_BYTES = 12 * 1024 * 1024;
 registerBrochureFonts((0, import_node_path.join)(process.cwd(), "assets", "fonts", "brochure"));
@@ -190639,13 +195214,15 @@ var render3 = async (body) => {
     return data ? [url2, data] : null;
   }));
   const images = Object.fromEntries(entries.filter(Boolean));
+  const packageUrl = body.packageUrl?.trim() || null;
+  const qr = packageUrl ? buildQrMatrix(packageUrl) : null;
   const renderAt = async (height2) => {
     const document2 = import_react5.default.createElement(PackageBrochureDocument, {
       model,
       images,
       height: height2,
-      qr: null,
-      packageUrl: body.packageUrl ?? null
+      qr,
+      packageUrl
     });
     const output = Buffer.from(await renderToBuffer(document2));
     return { output, pages: countPdfPages(output) };

@@ -7,6 +7,7 @@ import { registerBrochureFonts } from "./brochure/fonts.js";
 import { buildBrochureModel } from "./brochure/model.js";
 import { countPdfPages, fitToOnePage } from "./brochure/pageFit.js";
 import type { BrochureParty } from "./brochure/party.js";
+import { buildQrMatrix } from "./brochure/qr.js";
 import type { BrochurePackageSource } from "./brochure/source.js";
 
 const MAX_IMAGE_BYTES = 12 * 1024 * 1024;
@@ -34,11 +35,15 @@ const render = async (body: RequestBody) => {
     return data ? ([url, data] as const) : null;
   }));
   const images = Object.fromEntries(entries.filter(Boolean) as [string, string][]);
+  // A packageUrl means the caller has decided this package has a public page,
+  // so it gets a QR. See the note in server.ts.
+  const packageUrl = body.packageUrl?.trim() || null;
+  const qr = packageUrl ? buildQrMatrix(packageUrl) : null;
   // Trim the page to the content — a fixed height leaves the brochure sitting
   // on tens of thousands of points of blank page. See ./brochure/pageFit.ts.
   const renderAt = async (height: number) => {
     const document = React.createElement(PackageBrochureDocument, {
-      model, images, height, qr: null, packageUrl: body.packageUrl ?? null,
+      model, images, height, qr, packageUrl,
     });
     const output = Buffer.from(await renderToBuffer(document as any));
     return { output, pages: countPdfPages(output) };
