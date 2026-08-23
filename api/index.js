@@ -190590,6 +190590,32 @@ function buildBrochureModel(pkg, party) {
   return model;
 }
 
+// src/brochure/pageFit.ts
+var MIN_PAGE_HEIGHT = 600;
+var MAX_PAGE_HEIGHT = 4e4;
+var HEIGHT_TOLERANCE = 6;
+function countPdfPages(bytes) {
+  const text = new TextDecoder("latin1").decode(bytes);
+  const matches = text.match(/\/Type\s*\/Page[^s]/g);
+  return matches?.length || 1;
+}
+async function fitToOnePage(renderAt) {
+  let low = MIN_PAGE_HEIGHT;
+  let high = MAX_PAGE_HEIGHT;
+  let best = await renderAt(high);
+  while (high - low > HEIGHT_TOLERANCE) {
+    const mid = Math.round((low + high) / 2);
+    const candidate = await renderAt(mid);
+    if (candidate.pages <= 1) {
+      high = mid;
+      best = candidate;
+    } else {
+      low = mid;
+    }
+  }
+  return { output: best.output, height: high, pages: best.pages };
+}
+
 // src/vercel.ts
 var MAX_IMAGE_BYTES = 12 * 1024 * 1024;
 registerBrochureFonts((0, import_node_path.join)(process.cwd(), "assets", "fonts", "brochure"));
@@ -190612,14 +190638,19 @@ var render3 = async (body) => {
     const data = await toDataUrl(url2);
     return data ? [url2, data] : null;
   }));
-  const document2 = import_react5.default.createElement(PackageBrochureDocument, {
-    model,
-    images: Object.fromEntries(entries.filter(Boolean)),
-    height: 4e4,
-    qr: null,
-    packageUrl: body.packageUrl ?? null
-  });
-  const pdf2 = Buffer.from(await renderToBuffer(document2));
+  const images = Object.fromEntries(entries.filter(Boolean));
+  const renderAt = async (height2) => {
+    const document2 = import_react5.default.createElement(PackageBrochureDocument, {
+      model,
+      images,
+      height: height2,
+      qr: null,
+      packageUrl: body.packageUrl ?? null
+    });
+    const output = Buffer.from(await renderToBuffer(document2));
+    return { output, pages: countPdfPages(output) };
+  };
+  const { output: pdf2 } = await fitToOnePage(renderAt);
   const name = model.title.replace(/[^\w\s-]/g, "").trim().replace(/\s+/g, "-").slice(0, 80) || "package";
   return { pdf: pdf2, name };
 };

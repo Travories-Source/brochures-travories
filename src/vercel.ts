@@ -5,6 +5,7 @@ import React from "react";
 import { PackageBrochureDocument } from "./brochure/PackageBrochureDocument.js";
 import { registerBrochureFonts } from "./brochure/fonts.js";
 import { buildBrochureModel } from "./brochure/model.js";
+import { countPdfPages, fitToOnePage } from "./brochure/pageFit.js";
 import type { BrochureParty } from "./brochure/party.js";
 import type { BrochurePackageSource } from "./brochure/source.js";
 
@@ -32,11 +33,17 @@ const render = async (body: RequestBody) => {
     const data = await toDataUrl(url);
     return data ? ([url, data] as const) : null;
   }));
-  const document = React.createElement(PackageBrochureDocument, {
-    model, images: Object.fromEntries(entries.filter(Boolean) as [string, string][]), height: 40_000, qr: null,
-    packageUrl: body.packageUrl ?? null,
-  });
-  const pdf = Buffer.from(await renderToBuffer(document as any));
+  const images = Object.fromEntries(entries.filter(Boolean) as [string, string][]);
+  // Trim the page to the content — a fixed height leaves the brochure sitting
+  // on tens of thousands of points of blank page. See ./brochure/pageFit.ts.
+  const renderAt = async (height: number) => {
+    const document = React.createElement(PackageBrochureDocument, {
+      model, images, height, qr: null, packageUrl: body.packageUrl ?? null,
+    });
+    const output = Buffer.from(await renderToBuffer(document as any));
+    return { output, pages: countPdfPages(output) };
+  };
+  const { output: pdf } = await fitToOnePage(renderAt);
   const name = model.title.replace(/[^\w\s-]/g, "").trim().replace(/\s+/g, "-").slice(0, 80) || "package";
   return { pdf, name };
 };

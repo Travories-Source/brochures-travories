@@ -4,25 +4,11 @@ import type { BrochurePackageSource } from "./source.js";
 
 import { ensureBrochureFonts } from "./fonts.js";
 import { buildBrochureModel, type BrochureModel } from "./model.js";
+import { countPdfPages, fitToOnePage } from "./pageFit.js";
 import { resolvePackageUrl } from "./packageLink.js";
 import { PackageBrochureDocument } from "./PackageBrochureDocument.js";
 import type { BrochureParty } from "./party.js";
 import { buildQrMatrix, type QrMatrix } from "./qr.js";
-
-/**
- * The Figma frame is a single continuous canvas (1440 x 7798), and the
- * reference export is one 1440pt-wide page — not a paginated A4 document. To
- * reproduce that we need the exact content height up front, which @react-pdf
- * does not expose.
- *
- * So we binary-search it: the smallest page height at which the document still
- * lays out as exactly one page *is* the content height. Each step renders the
- * real document — roughly 13 renders at ~100ms — and the winning render is the
- * one we hand back, so the measurement can never disagree with the output.
- */
-const MIN_HEIGHT = 600;
-const MAX_HEIGHT = 40000;
-const HEIGHT_TOLERANCE = 6;
 
 const proxied = (url: string) => `/api/media-proxy?url=${encodeURIComponent(url)}`;
 
@@ -106,26 +92,6 @@ async function loadImages(urls: string[]): Promise<Record<string, string>> {
   return Object.fromEntries(entries.filter(Boolean) as (readonly [string, string])[]);
 }
 
-/**
- * Count pages in a rendered PDF.
- *
- * @react-pdf does expose a `totalPages` render callback, but wiring one in adds
- * a `fixed` node to the page and that measurably changes pagination — the same
- * content fitted 7306pt with the callback present and needed 7566pt without it.
- * Counting page objects in the finished bytes measures the document we actually
- * ship. pdfkit writes these dictionaries uncompressed, so a scan is reliable.
- */
-async function countPdfPages(blob: Blob): Promise<number> {
-  const text = new TextDecoder("latin1").decode(await blob.arrayBuffer());
-  const matches = text.match(/\/Type\s*\/Page[^s]/g);
-  return matches?.length || 1;
-}
-
-interface Rendered {
-  blob: Blob;
-  pages: number;
-}
-
 interface RenderInputs {
   model: BrochureModel;
   images: Record<string, string>;
@@ -133,7 +99,8 @@ interface RenderInputs {
   packageUrl: string | null;
 }
 
-async function renderAt(inputs: RenderInputs, height: number): Promise<Rendered> {
+/** One render of the brochure at a given page height, plus its page count. */
+async function renderAt(inputs: RenderInputs, height: number): Promise<{ output: Blob; pages: number }> {
   const blob = await pdf(
     <PackageBrochureDocument
       model={inputs.model}
@@ -143,33 +110,7 @@ async function renderAt(inputs: RenderInputs, height: number): Promise<Rendered>
       packageUrl={inputs.packageUrl}
     />,
   ).toBlob();
-  return { blob, pages: await countPdfPages(blob) };
-}
-
-/**
- * Find the shortest page height that still holds the whole brochure, and return
- * that render. Binary search over ~13 renders, each around 100ms.
- */
-async function fitToOnePage(inputs: RenderInputs): Promise<{ blob: Blob; height: number; pages: number }> {
-  let low = MIN_HEIGHT;
-  let high = MAX_HEIGHT;
-
-  // The upper bound doubles as the fallback: if even MAX_HEIGHT cannot hold the
-  // content, we ship that render rather than failing outright.
-  let best = await renderAt(inputs, high);
-
-  while (high - low > HEIGHT_TOLERANCE) {
-    const mid = Math.round((low + high) / 2);
-    const candidate = await renderAt(inputs, mid);
-    if (candidate.pages <= 1) {
-      high = mid;
-      best = candidate;
-    } else {
-      low = mid;
-    }
-  }
-
-  return { blob: best.blob, height: high, pages: best.pages };
+  return { output: blob, pages: countPdfPages(new Uint8Array(await blob.arrayBuffer())) };
 }
 
 export interface BrochureResult {
@@ -202,7 +143,8 @@ export async function generatePackageBrochure(
   // to a 404 is worse than none at all.
   const qr = packageUrl ? buildQrMatrix(packageUrl) : null;
 
-  const { blob, height } = await fitToOnePage({ model, images, qr, packageUrl });
+  const inputs: RenderInputs = { model, images, qr, packageUrl };
+  const { output: blob, height } = await fitToOnePage((h) => renderAt(inputs, h));
 
   return { blob, filename: `${slugify(model.title)}.pdf`, height };
 }

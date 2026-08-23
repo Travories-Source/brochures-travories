@@ -14,16 +14,20 @@
     "./server": "./src/server.ts"
   },
   "dependencies": {
+    "qrcode": "^1.5.4"
+  },
+  "peerDependencies": {
     "@react-pdf/renderer": "^4.6.1",
-    "fastify": "^5.6.1",
-    "qrcode": "^1.5.4",
     "react": "^19.0.0"
   },
   "devDependencies": {
+    "@react-pdf/renderer": "^4.6.1",
     "@types/node": "^20.0.0",
     "@types/qrcode": "^1.5.6",
     "@types/react": "^19.0.0",
     "esbuild": "^0.28.2",
+    "fastify": "^5.6.1",
+    "react": "^19.0.0",
     "tsx": "^4.0.0",
     "typescript": "^5.0.0"
   }
