@@ -11,6 +11,12 @@ const TITLE_BLOCK_WIDTH = 1107;
  * Same column, shrunk on both sides by the width of the QR corner plus a
  * breathing gap, so it remains centred on the page while clearing the code.
  */
+/** Two service cards per row, inside the panel's 20pt padding. */
+const SERVICE_LIST_INSET = 29;
+const SERVICE_CARD_GAP = 16;
+const SERVICE_PANEL_INNER = BROCHURE_PAGE.contentWidth - SERVICE_LIST_INSET * 2 - 40;
+const SERVICE_CARD_WIDTH = (SERVICE_PANEL_INNER - SERVICE_CARD_GAP) / 2;
+
 const TITLE_QR_GAP = 32;
 const TITLE_BLOCK_WIDTH_WITH_QR =
   BROCHURE_PAGE.width - 2 * (BROCHURE_PAGE.paddingX + BROCHURE_PAGE.qrSize + TITLE_QR_GAP);
@@ -211,19 +217,32 @@ export const styles = StyleSheet.create({
 
   /* ── Services ───────────────────────────────────────────────────────── */
   serviceList: { gap: 24, marginHorizontal: 29 },
-  service: { flexDirection: "row" },
-  serviceAside: { width: 460 },
+  /**
+   * The label stacks above the panel rather than sitting in a column beside it.
+   *
+   * As a side-by-side row the label's 460pt column stood empty under two short
+   * lines while the panel ran on for hundreds of points, and it squeezed the
+   * cards into a 677pt text column — 47% of the page width unused on every
+   * line. Stacking costs the label's own height once per block and buys the
+   * panel the full column, which is what makes the two-up card grid below fit.
+   */
+  service: { gap: 20 },
   serviceGhost: { fontSize: 52, fontWeight: 700, letterSpacing: -0.52, marginBottom: -22 },
   serviceLabel: { fontSize: 22, fontWeight: 500, lineHeight: 1.045, letterSpacing: -0.88 },
   servicePanel: {
-    width: 766,
     backgroundColor: C.background,
     borderRadius: 8,
     paddingHorizontal: 20,
     paddingVertical: 32,
-    gap: 16,
   },
+  /**
+   * Two cards per row. Wrapping rows rather than balanced columns: a row is as
+   * tall as its taller card, which measured within 8% of perfectly balanced
+   * columns on a real 9-day package and needs no height estimation to lay out.
+   */
+  serviceCardGrid: { flexDirection: "row", flexWrap: "wrap", gap: SERVICE_CARD_GAP },
   serviceCard: {
+    width: SERVICE_CARD_WIDTH,
     backgroundColor: C.white,
     borderWidth: 1,
     borderColor: C.stroke,
@@ -231,6 +250,12 @@ export const styles = StyleSheet.create({
     padding: 24,
     gap: 4,
   },
+  /**
+   * A card with no partner in its row spans the panel instead of leaving half
+   * of it blank — which is both tidier and shorter, since the wider text column
+   * wraps fewer lines. Applies to a lone card and to the last of an odd number.
+   */
+  serviceCardWide: { width: SERVICE_PANEL_INNER },
   serviceCardHeading: { fontSize: 18, fontWeight: 500, letterSpacing: -0.72 },
   serviceItem: { flexDirection: "row" },
   serviceBullet: { width: 24, fontSize: 16, lineHeight: 1.5, color: C.text },

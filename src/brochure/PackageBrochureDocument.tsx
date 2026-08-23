@@ -471,24 +471,32 @@ const AddOns = ({ model, images }: Pick<DocProps, "model" | "images">) => (
 
 const ServiceBlock = ({ service }: { service: BrochureService }) => (
   <View style={styles.service}>
-    <View style={styles.serviceAside}>
+    <View>
       <Text style={[styles.serviceGhost, { color: service.ghostColor }]}>{service.ghost}</Text>
       <Text style={[styles.serviceLabel, { color: service.accentDeep }]}>{service.label}</Text>
     </View>
     <View style={styles.servicePanel}>
-      {service.groups.map((group, index) => (
-        <View key={`${group.category}-${index}`} style={styles.serviceCard}>
-          {!!group.category && (
-            <Text style={[styles.serviceCardHeading, { color: service.accent }]}>{group.category}</Text>
-          )}
-          {group.items.map((item, itemIndex) => (
-            <View key={itemIndex} style={styles.serviceItem}>
-              <Text style={styles.serviceBullet}>•</Text>
-              <Text style={styles.serviceItemText}>{item}</Text>
-            </View>
-          ))}
-        </View>
-      ))}
+      <View style={styles.serviceCardGrid}>
+        {service.groups.map((group, index) => {
+          const orphan = service.groups.length % 2 === 1 && index === service.groups.length - 1;
+          return (
+          <View
+            key={`${group.category}-${index}`}
+            style={orphan ? [styles.serviceCard, styles.serviceCardWide] : styles.serviceCard}
+          >
+            {!!group.category && (
+              <Text style={[styles.serviceCardHeading, { color: service.accent }]}>{group.category}</Text>
+            )}
+            {group.items.map((item, itemIndex) => (
+              <View key={itemIndex} style={styles.serviceItem}>
+                <Text style={styles.serviceBullet}>•</Text>
+                <Text style={styles.serviceItemText}>{item}</Text>
+              </View>
+            ))}
+          </View>
+          );
+        })}
+      </View>
     </View>
   </View>
 );
