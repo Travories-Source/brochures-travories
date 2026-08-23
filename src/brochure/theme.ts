@@ -29,6 +29,19 @@ export const BROCHURE_PAGE = {
   blockGap: 80,
 } as const;
 
+/**
+ * Page geometry for the two output modes.
+ *
+ * The design is a fixed 1440pt-wide canvas, so a paginated page keeps that
+ * width and takes A4's proportions rather than A4's literal size — printed to
+ * paper it scales down uniformly and nothing in the layout has to move.
+ *
+ * Landscape, because the proportions decide the print size of the type: on
+ * portrait A4 this canvas puts 16pt body copy on the page at 6.6pt, which is
+ * below readable. Landscape lands it at 9.4pt.
+ */
+export const BROCHURE_A4_LANDSCAPE_HEIGHT = (BROCHURE_PAGE.width * 210) / 297;
+
 export const BROCHURE_COLOR = {
   /** Section headings and day-card labels. */
   primary: "#5b4d81",

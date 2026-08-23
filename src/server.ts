@@ -12,6 +12,7 @@ import { countPdfPages, fitToOnePage } from "./brochure/pageFit.js";
 import type { BrochureParty } from "./brochure/party.js";
 import { buildQrMatrix } from "./brochure/qr.js";
 import type { BrochurePackageSource } from "./brochure/source.js";
+import { BROCHURE_A4_LANDSCAPE_HEIGHT } from "./brochure/theme.js";
 
 const MAX_IMAGE_BYTES = 12 * 1024 * 1024;
 const fontDir = join(process.cwd(), "assets", "fonts", "brochure");
@@ -20,6 +21,8 @@ type RequestBody = {
   package: BrochurePackageSource;
   party?: BrochureParty;
   packageUrl?: string;
+  /** "a4" paginates into printable pages; anything else keeps one tall page. */
+  layout?: "continuous" | "a4";
 };
 
 const asDataUrl = async (url: string): Promise<string | null> => {
@@ -63,9 +66,7 @@ async function render(body: RequestBody): Promise<{ bytes: Buffer; filename: str
   const packageUrl = body.packageUrl?.trim() || null;
   const qr = packageUrl ? buildQrMatrix(packageUrl) : null;
 
-  // The layout is one continuous canvas, so the page has to be trimmed to the
-  // content: rendering at a fixed generous height leaves tens of thousands of
-  // points of blank page below the brochure.
+  const paged = body.layout === "a4";
   const renderAt = async (height: number) => {
     const document = React.createElement(PackageBrochureDocument, {
       model,
@@ -73,12 +74,19 @@ async function render(body: RequestBody): Promise<{ bytes: Buffer; filename: str
       height,
       qr,
       packageUrl,
+      paged,
     });
     const output = Buffer.from(await renderToBuffer(document as any));
     return { output, pages: countPdfPages(output) };
   };
 
-  const { output: bytes } = await fitToOnePage(renderAt);
+  // Paginated output has a page height by definition. Otherwise the layout is
+  // one continuous canvas and the page has to be trimmed to its content:
+  // rendering at a fixed generous height leaves tens of thousands of points of
+  // blank page below the brochure.
+  const { output: bytes } = paged
+    ? await renderAt(BROCHURE_A4_LANDSCAPE_HEIGHT)
+    : await fitToOnePage(renderAt);
   const filename = `${model.title.replace(/[^\w\s-]/g, "").trim().replace(/\s+/g, "-").slice(0, 80) || "package"}.pdf`;
   return { bytes: Buffer.from(bytes), filename };
 }

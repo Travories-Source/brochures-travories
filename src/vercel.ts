@@ -9,10 +9,17 @@ import { countPdfPages, fitToOnePage } from "./brochure/pageFit.js";
 import type { BrochureParty } from "./brochure/party.js";
 import { buildQrMatrix } from "./brochure/qr.js";
 import type { BrochurePackageSource } from "./brochure/source.js";
+import { BROCHURE_A4_LANDSCAPE_HEIGHT } from "./brochure/theme.js";
 
 const MAX_IMAGE_BYTES = 12 * 1024 * 1024;
 registerBrochureFonts(join(process.cwd(), "assets", "fonts", "brochure"));
-type RequestBody = { package: BrochurePackageSource; party?: BrochureParty; packageUrl?: string };
+type RequestBody = {
+  package: BrochurePackageSource;
+  party?: BrochureParty;
+  packageUrl?: string;
+  /** "a4" paginates into printable pages; anything else keeps one tall page. */
+  layout?: "continuous" | "a4";
+};
 
 const authorised = (received: string | null, expected: string) =>
   !!received && timingSafeEqual(createHash("sha256").update(received).digest(), createHash("sha256").update(expected).digest());
@@ -41,14 +48,19 @@ const render = async (body: RequestBody) => {
   const qr = packageUrl ? buildQrMatrix(packageUrl) : null;
   // Trim the page to the content — a fixed height leaves the brochure sitting
   // on tens of thousands of points of blank page. See ./brochure/pageFit.ts.
+  const paged = body.layout === "a4";
   const renderAt = async (height: number) => {
     const document = React.createElement(PackageBrochureDocument, {
-      model, images, height, qr, packageUrl,
+      model, images, height, qr, packageUrl, paged,
     });
     const output = Buffer.from(await renderToBuffer(document as any));
     return { output, pages: countPdfPages(output) };
   };
-  const { output: pdf } = await fitToOnePage(renderAt);
+  // Paginated output has a page height by definition; continuous has to be
+  // solved for. See ./brochure/pageFit.ts.
+  const { output: pdf } = paged
+    ? await renderAt(BROCHURE_A4_LANDSCAPE_HEIGHT)
+    : await fitToOnePage(renderAt);
   const name = model.title.replace(/[^\w\s-]/g, "").trim().replace(/\s+/g, "-").slice(0, 80) || "package";
   return { pdf, name };
 };

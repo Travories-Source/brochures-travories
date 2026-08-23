@@ -3,6 +3,7 @@ import { pdf } from "@react-pdf/renderer";
 import type { BrochurePackageSource } from "./source.js";
 
 import { ensureBrochureFonts } from "./fonts.js";
+import { BROCHURE_A4_LANDSCAPE_HEIGHT } from "./theme.js";
 import { buildBrochureModel, type BrochureModel } from "./model.js";
 import { countPdfPages, fitToOnePage } from "./pageFit.js";
 import { resolvePackageUrl } from "./packageLink.js";
@@ -100,7 +101,11 @@ interface RenderInputs {
 }
 
 /** One render of the brochure at a given page height, plus its page count. */
-async function renderAt(inputs: RenderInputs, height: number): Promise<{ output: Blob; pages: number }> {
+async function renderAt(
+  inputs: RenderInputs,
+  height: number,
+  paged = false,
+): Promise<{ output: Blob; pages: number }> {
   const blob = await pdf(
     <PackageBrochureDocument
       model={inputs.model}
@@ -108,6 +113,7 @@ async function renderAt(inputs: RenderInputs, height: number): Promise<{ output:
       height={height}
       qr={inputs.qr}
       packageUrl={inputs.packageUrl}
+      paged={paged}
     />,
   ).toBlob();
   return { output: blob, pages: countPdfPages(new Uint8Array(await blob.arrayBuffer())) };
@@ -117,6 +123,20 @@ export interface BrochureResult {
   blob: Blob;
   filename: string;
   height: number;
+  pages: number;
+}
+
+/**
+ * How the brochure is paginated.
+ *
+ * `continuous` is the Figma original: one tall page, sized to its own content.
+ * `a4` breaks it into A4-proportioned pages for printing, keeping every block
+ * that reads as a unit whole on one page.
+ */
+export type BrochureLayout = "continuous" | "a4";
+
+export interface BrochureOptions {
+  layout?: BrochureLayout;
 }
 
 const slugify = (value: string): string =>
@@ -133,6 +153,7 @@ const slugify = (value: string): string =>
 export async function generatePackageBrochure(
   pkg: BrochurePackageSource,
   party?: BrochureParty,
+  options?: BrochureOptions,
 ): Promise<BrochureResult> {
   await ensureBrochureFonts();
 
@@ -144,17 +165,27 @@ export async function generatePackageBrochure(
   const qr = packageUrl ? buildQrMatrix(packageUrl) : null;
 
   const inputs: RenderInputs = { model, images, qr, packageUrl };
-  const { output: blob, height } = await fitToOnePage((h) => renderAt(inputs, h));
+  const filename = `${slugify(model.title)}.pdf`;
 
-  return { blob, filename: `${slugify(model.title)}.pdf`, height };
+  // Paginated output has a page height by definition, so there is nothing to
+  // solve for — one render instead of the fitting pass's thirteen.
+  if (options?.layout === "a4") {
+    const height = BROCHURE_A4_LANDSCAPE_HEIGHT;
+    const { output: blob, pages } = await renderAt(inputs, height, true);
+    return { blob, filename, height, pages };
+  }
+
+  const { output: blob, height, pages } = await fitToOnePage((h) => renderAt(inputs, h));
+  return { blob, filename, height, pages };
 }
 
 /** Generate the brochure and hand it straight to the browser's downloader. */
 export async function downloadPackageBrochure(
   pkg: BrochurePackageSource,
   party?: BrochureParty,
+  options?: BrochureOptions,
 ): Promise<void> {
-  const { blob, filename } = await generatePackageBrochure(pkg, party);
+  const { blob, filename } = await generatePackageBrochure(pkg, party, options);
 
   const url = URL.createObjectURL(blob);
   const anchor = document.createElement("a");
