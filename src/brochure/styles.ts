@@ -11,6 +11,9 @@ const TITLE_BLOCK_WIDTH = 1107;
  * Same column, shrunk on both sides by the width of the QR corner plus a
  * breathing gap, so it remains centred on the page while clearing the code.
  */
+/** Top and bottom margin when the brochure is broken into printable pages. */
+const PAGED_PADDING_Y = 56;
+
 /** Vertical rhythm of the itinerary, and the two columns inside each day card. */
 const DAY_LIST_INSET = 29;
 const DAY_GAP = 40;
@@ -44,6 +47,14 @@ export const styles = StyleSheet.create({
     fontFamily: sans,
     color: C.text,
   },
+  /**
+   * Paginated pages take a tighter vertical margin than the continuous canvas.
+   *
+   * On a single tall page the top and bottom padding are read once; on twelve
+   * pages they are paid twelve times, and 76pt of it decided whether two day
+   * blocks fitted on a sheet or one did. 56pt is ~12mm on printed A4.
+   */
+  pagePaged: { paddingTop: PAGED_PADDING_Y, paddingBottom: PAGED_PADDING_Y },
 
   /* ── Header ─────────────────────────────────────────────────────────── */
   header: { alignItems: "center", gap: 40 },
@@ -259,11 +270,18 @@ export const styles = StyleSheet.create({
     paddingVertical: 32,
   },
   /**
-   * Two cards per row. Wrapping rows rather than balanced columns: a row is as
-   * tall as its taller card, which measured within 8% of perfectly balanced
-   * columns on a real 9-day package and needs no height estimation to lay out.
+   * Two cards per row, as explicit rows rather than a wrapping flex container.
+   *
+   * flexWrap cannot paginate: @react-pdf clips whatever does not fit instead of
+   * carrying it to the next page, which silently dropped 21 items from the
+   * printable layout. Real rows are ordinary blocks, so each can be marked
+   * unbreakable and moves whole.
+   *
+   * A row is as tall as its taller card, which measured within 8% of perfectly
+   * balanced columns and needs no height estimation to lay out.
    */
-  serviceCardGrid: { flexDirection: "row", flexWrap: "wrap", gap: SERVICE_CARD_GAP },
+  serviceCardRows: { gap: SERVICE_CARD_GAP },
+  serviceCardRow: { flexDirection: "row", gap: SERVICE_CARD_GAP },
   serviceCard: {
     width: SERVICE_CARD_WIDTH,
     backgroundColor: C.white,

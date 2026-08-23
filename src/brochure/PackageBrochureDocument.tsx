@@ -61,6 +61,15 @@ interface DocProps {
   qr?: QrMatrix | null;
   /** Public package URL the QR points at, also used as the QR's link target. */
   packageUrl?: string | null;
+  /**
+   * Break the brochure into A4-proportioned pages instead of one tall page.
+   *
+   * Every block that reads as a unit — a day, a service card, the gallery, the
+   * footer — then carries `wrap={false}`, so a block that will not fit in the
+   * remaining space moves to the next page whole rather than being sliced
+   * across the boundary.
+   */
+  paged?: boolean;
 }
 
 const Icon = ({ name, size, color }: { name: BrochureIconName; size: number; color?: string }) => {
@@ -261,9 +270,20 @@ const QrCode = ({ matrix, url }: { matrix: QrMatrix; url: string }) => {
   );
 };
 
-const Section = ({ heading, children }: { heading: string; children: React.ReactNode }) => (
+const Section = ({
+  heading,
+  children,
+  paged,
+}: {
+  heading: string;
+  children: React.ReactNode;
+  paged?: boolean;
+}) => (
   <View>
-    <Text style={styles.sectionHeading}>{heading}</Text>
+    {/* A heading alone at the foot of a page is worse than a shorter page. */}
+    <Text style={styles.sectionHeading} minPresenceAhead={paged ? 160 : undefined}>
+      {heading}
+    </Text>
     {children}
   </View>
 );
@@ -306,11 +326,11 @@ const Header = ({ model, hasQr }: { model: BrochureModel; hasQr: boolean }) => (
   </View>
 );
 
-const Gallery = ({ model, images }: Pick<DocProps, "model" | "images">) => {
+const Gallery = ({ model, images, paged }: Pick<DocProps, "model" | "images" | "paged">) => {
   if (model.gallery.length === 0) return null;
   const shared = { images };
   return (
-    <View style={styles.gallery}>
+    <View style={styles.gallery} wrap={!paged}>
       <Picture src={model.gallery[0]} style={styles.galleryTall} {...shared} />
       <View style={styles.galleryColumn}>
         <Picture src={model.gallery[1]} style={styles.galleryShort} {...shared} />
@@ -321,7 +341,7 @@ const Gallery = ({ model, images }: Pick<DocProps, "model" | "images">) => {
   );
 };
 
-const KeyFacts = ({ model, images }: Pick<DocProps, "model" | "images">) => {
+const KeyFacts = ({ model, images, paged }: Pick<DocProps, "model" | "images" | "paged">) => {
   // The design has four fixed rows; a personalised brochure adds the party and
   // arrival date, which have no slot of their own but belong with the facts.
   const facts = [
@@ -331,7 +351,7 @@ const KeyFacts = ({ model, images }: Pick<DocProps, "model" | "images">) => {
   ];
 
   return (
-  <View style={styles.keyFacts}>
+  <View style={styles.keyFacts} wrap={!paged}>
     <View>
       <Text style={styles.sectionHeading}>Key Facts</Text>
       <View style={styles.keyFactsColumns}>
@@ -359,8 +379,8 @@ const KeyFacts = ({ model, images }: Pick<DocProps, "model" | "images">) => {
   );
 };
 
-const DayCard = ({ day }: { day: BrochureDay }) => (
-  <View style={styles.day}>
+const DayCard = ({ day, paged }: { day: BrochureDay; paged?: boolean }) => (
+  <View style={styles.day} wrap={!paged}>
     <View style={styles.dayHeader}>
       <Text style={styles.dayIndex}>{day.index}</Text>
       <View style={styles.dayTitleBox}>
@@ -478,40 +498,67 @@ const AddOns = ({ model, images }: Pick<DocProps, "model" | "images">) => (
   </Section>
 );
 
-const ServiceBlock = ({ service }: { service: BrochureService }) => (
-  <View style={styles.service}>
-    <View>
-      <Text style={[styles.serviceGhost, { color: service.ghostColor }]}>{service.ghost}</Text>
-      <Text style={[styles.serviceLabel, { color: service.accentDeep }]}>{service.label}</Text>
-    </View>
-    <View style={styles.servicePanel}>
-      <View style={styles.serviceCardGrid}>
-        {service.groups.map((group, index) => {
-          const orphan = service.groups.length % 2 === 1 && index === service.groups.length - 1;
-          return (
-          <View
-            key={`${group.category}-${index}`}
-            style={orphan ? [styles.serviceCard, styles.serviceCardWide] : styles.serviceCard}
-          >
-            {!!group.category && (
-              <Text style={[styles.serviceCardHeading, { color: service.accent }]}>{group.category}</Text>
-            )}
-            {group.items.map((item, itemIndex) => (
-              <View key={itemIndex} style={styles.serviceItem}>
-                <Text style={styles.serviceBullet}>•</Text>
-                <Text style={styles.serviceItemText}>{item}</Text>
-              </View>
-            ))}
-          </View>
-          );
-        })}
+const ServiceBlock = ({
+  service,
+  paged,
+  first,
+}: {
+  service: BrochureService;
+  paged?: boolean;
+  first?: boolean;
+}) => {
+  // Pairs, so each row is a block that can be kept whole across a page break.
+  const rows: BrochureService["groups"][] = [];
+  for (let index = 0; index < service.groups.length; index += 2) {
+    rows.push(service.groups.slice(index, index + 2));
+  }
+
+  return (
+    /*
+     * Paginated, each block starts its own page. It is not only tidier — the
+     * label never stranded at a page foot — it is load-bearing: when one of
+     * these panels began with only a sliver of page left, @react-pdf stopped
+     * paginating it and laid the remaining rows on top of each other at the
+     * bottom, losing items outright.
+     */
+    <View style={styles.service} break={paged && !first}>
+      <View>
+        <Text style={[styles.serviceGhost, { color: service.ghostColor }]}>{service.ghost}</Text>
+        <Text style={[styles.serviceLabel, { color: service.accentDeep }]}>{service.label}</Text>
+      </View>
+      <View style={styles.servicePanel}>
+        <View style={styles.serviceCardRows}>
+          {rows.map((row, rowIndex) => (
+            <View key={rowIndex} style={styles.serviceCardRow} wrap={!paged}>
+              {row.map((group, index) => (
+                <View
+                  key={`${group.category}-${index}`}
+                  // A card with no partner spans the panel rather than leaving
+                  // half a row blank — tidier, and shorter, since the wider
+                  // text column wraps fewer lines.
+                  style={row.length === 1 ? [styles.serviceCard, styles.serviceCardWide] : styles.serviceCard}
+                >
+                  {!!group.category && (
+                    <Text style={[styles.serviceCardHeading, { color: service.accent }]}>{group.category}</Text>
+                  )}
+                  {group.items.map((item, itemIndex) => (
+                    <View key={itemIndex} style={styles.serviceItem}>
+                      <Text style={styles.serviceBullet}>•</Text>
+                      <Text style={styles.serviceItemText}>{item}</Text>
+                    </View>
+                  ))}
+                </View>
+              ))}
+            </View>
+          ))}
+        </View>
       </View>
     </View>
-  </View>
-);
+  );
+};
 
-const Footer = ({ agencyName }: { agencyName: string }) => (
-  <View style={styles.footer}>
+const Footer = ({ agencyName, paged }: { agencyName: string; paged?: boolean }) => (
+  <View style={styles.footer} wrap={!paged}>
     <View style={styles.footerInner}>
       <Text style={styles.footerTitle}>Experience Travel with Travories</Text>
       <Text style={styles.footerBody}>
@@ -542,7 +589,7 @@ const Footer = ({ agencyName }: { agencyName: string }) => (
 
 /* ── Document ─────────────────────────────────────────────────────────── */
 
-export function PackageBrochureDocument({ model, images, height, qr, packageUrl }: DocProps) {
+export function PackageBrochureDocument({ model, images, height, qr, packageUrl, paged }: DocProps) {
   const shared = { model, images };
 
   // Two modes. With a party, the cards are that party's priced breakdown; with
@@ -587,16 +634,19 @@ export function PackageBrochureDocument({ model, images, height, qr, packageUrl 
 
   return (
     <Document title={model.title} author={model.agencyName || "Travories"} creator="Travories">
-      <Page size={{ width: BROCHURE_PAGE.width, height }} style={styles.page}>
+      <Page
+        size={{ width: BROCHURE_PAGE.width, height }}
+        style={paged ? [styles.page, styles.pagePaged] : styles.page}
+      >
         {showQr && <QrCode matrix={qr!} url={packageUrl!} />}
 
         <Header model={model} hasQr={showQr} />
 
         <View style={styles.content}>
-          <Gallery {...shared} />
+          <Gallery {...shared} paged={paged} />
 
           {model.overview.length > 0 && (
-            <Section heading="Overview">
+            <Section heading="Overview" paged={paged}>
               <View style={{ gap: 10 }}>
                 {model.overview.map((paragraph, index) => (
                   <Text key={index} style={styles.overviewCopy}>
@@ -607,10 +657,10 @@ export function PackageBrochureDocument({ model, images, height, qr, packageUrl 
             </Section>
           )}
 
-          <KeyFacts {...shared} />
+          <KeyFacts {...shared} paged={paged} />
 
-          <Section heading="Pricing">
-              <View style={styles.priceRow}>
+          <Section heading="Pricing" paged={paged}>
+              <View style={styles.priceRow} wrap={!paged}>
                 {pricingCards.map((card, index) => (
                   <View key={`${card.label}-${index}`} style={styles.priceCard}>
                     <Text style={styles.priceCardLabel}>{card.label}</Text>
@@ -626,10 +676,10 @@ export function PackageBrochureDocument({ model, images, height, qr, packageUrl 
           </Section>
 
           {model.days.length > 0 && (
-            <Section heading="Itinerary">
+            <Section heading="Itinerary" paged={paged}>
               <View style={styles.dayList}>
                 {model.days.map((day) => (
-                  <DayCard key={day.index} day={day} />
+                  <DayCard key={day.index} day={day} paged={paged} />
                 ))}
               </View>
             </Section>
@@ -638,17 +688,22 @@ export function PackageBrochureDocument({ model, images, height, qr, packageUrl 
           {model.addons.length > 0 && <AddOns {...shared} />}
 
           {model.services.length > 0 && (
-            <Section heading="Services">
+            <Section heading="Services" paged={paged}>
               <View style={styles.serviceList}>
-                {model.services.map((service) => (
-                  <ServiceBlock key={service.ghost} service={service} />
+                {model.services.map((service, index) => (
+                  <ServiceBlock
+                    key={service.ghost}
+                    service={service}
+                    paged={paged}
+                    first={index === 0}
+                  />
                 ))}
               </View>
             </Section>
           )}
         </View>
 
-        <Footer agencyName={model.agencyName} />
+        <Footer agencyName={model.agencyName} paged={paged} />
       </Page>
     </Document>
   );
