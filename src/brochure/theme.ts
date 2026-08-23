@@ -17,6 +17,12 @@ export const BROCHURE_PAGE = {
   paddingBottom: 76,
   /** Width of the inner content column. */
   contentWidth: 1284,
+  /**
+   * Side of the QR symbol pinned in the top-right corner. It also fixes the
+   * width of the whole QR block (the caption underneath is narrower), which is
+   * what the header title has to keep clear of.
+   */
+  qrSize: 132,
   /** Vertical gap between top-level sections inside the content column. */
   sectionGap: 50,
   /** Gap between the header block, the content column and the footer. */

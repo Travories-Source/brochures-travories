@@ -101,9 +101,16 @@ const Picture = ({
 
 /**
  * The Figma title is a left-to-right gradient fill. @react-pdf cannot paint a
- * gradient into glyphs, so the run is split per character and each character
- * gets its interpolated colour. Nested <Text> children are laid out as a single
+ * gradient into glyphs, so the run is split and each piece gets its
+ * interpolated colour. Nested <Text> children are laid out as a single
  * attributed string, so shaping and kerning survive the split.
+ *
+ * The split is per *word*, not per character, because @react-pdf offers a line
+ * break at every run boundary: splitting per character let it break inside a
+ * word and draw a hyphen there ("Base Cam-/p Journey"), which no hyphenation
+ * setting suppresses — `registerHyphenationCallback` never sees a whole word to
+ * refuse. Per-word runs give the line breaker the same break opportunities as
+ * undivided text, and the gradient is indistinguishable at title size.
  */
 const GradientText = ({
   value,
@@ -123,17 +130,26 @@ const GradientText = ({
   const channels = (hex: string) => [1, 3, 5].map((offset) => parseInt(hex.slice(offset, offset + 2), 16));
   const [r1, g1, b1] = channels(from);
   const [r2, g2, b2] = channels(to);
-  const characters = Array.from(value);
+
+  // Whitespace is kept as its own token so the reassembled string is identical
+  // to `value` — the gaps have no glyphs to colour anyway.
+  const tokens = value.split(/(\s+)/).filter(Boolean);
+  const span = Math.max(1, value.length);
+  let consumed = 0;
 
   return (
     <Text style={style}>
-      {characters.map((character, index) => {
-        const position = characters.length > 1 ? index / (characters.length - 1) : 0;
+      {tokens.map((token, index) => {
+        // Colour the whole word by where its middle sits in the line, so the
+        // ramp stays centred on the same glyphs as a per-character split.
+        const position = (consumed + token.length / 2) / span;
+        consumed += token.length;
+
         const t = Math.min(1, Math.max(0, (position - start) / (end - start)));
         const mix = (a: number, b: number) => Math.round(a + (b - a) * t);
         return (
           <Text key={index} style={{ color: `rgb(${mix(r1, r2)}, ${mix(g1, g2)}, ${mix(b1, b2)})` }}>
-            {character}
+            {token}
           </Text>
         );
       })}
@@ -153,7 +169,17 @@ const GradientText = ({
  * The centre knockout is safe because `buildQrMatrix` encodes at error
  * correction level H — see the note there.
  */
-const QR_SIZE = 132;
+/**
+ * lucide "external-link", the same source as the `travellers` and `arrival`
+ * icons in iconPaths.ts. Kept local because it belongs to the QR block rather
+ * than to the Figma icon set.
+ */
+const EXTERNAL_LINK = {
+  viewBox: "0 0 24 24",
+  paths: ["M15 3h6v6", "M10 14 21 3", "M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"],
+};
+
+const QR_SIZE = BROCHURE_PAGE.qrSize;
 const QR_QUIET_MODULES = 2;
 /** Logo box as a fraction of the symbol. Level H tolerates ~30%. */
 const QR_LOGO_RATIO = 0.24;
@@ -209,6 +235,28 @@ const QrCode = ({ matrix, url }: { matrix: QrMatrix; url: string }) => {
         </View>
       </View>
       <Text style={styles.qrCaption}>Scan to view package</Text>
+
+      {/*
+       * A QR is no use to someone reading this on the phone in their hand, and
+       * the whole block is already the link target — they just have no way to
+       * know that. This line says so.
+       */}
+      <View style={styles.qrAction}>
+        <Text style={styles.qrActionLabel}>or tap to open</Text>
+        <Svg viewBox={EXTERNAL_LINK.viewBox} style={{ width: 9, height: 9 }}>
+          {EXTERNAL_LINK.paths.map((d, index) => (
+            <Path
+              key={index}
+              d={d}
+              stroke={C.secondary}
+              strokeWidth={2}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              fill="none"
+            />
+          ))}
+        </Svg>
+      </View>
     </Link>
   );
 };
@@ -222,7 +270,7 @@ const Section = ({ heading, children }: { heading: string; children: React.React
 
 /* ── Sections ─────────────────────────────────────────────────────────── */
 
-const Header = ({ model }: { model: BrochureModel }) => (
+const Header = ({ model, hasQr }: { model: BrochureModel; hasQr: boolean }) => (
   <View style={styles.header}>
     <View style={styles.brandRow}>
       <Svg viewBox={LOGO_VIEWBOX} style={{ width: 172, height: 32 }}>
@@ -232,7 +280,7 @@ const Header = ({ model }: { model: BrochureModel }) => (
       </Svg>
     </View>
 
-    <View style={styles.titleBlock}>
+    <View style={hasQr ? [styles.titleBlock, styles.titleBlockWithQr] : styles.titleBlock}>
       <GradientText
         value={model.title}
         from={C.violet}
@@ -516,12 +564,16 @@ export function PackageBrochureDocument({ model, images, height, qr, packageUrl 
     model.quote ? undefined : model.concessions,
   ].filter(Boolean) as string[];
 
+  // The header title reserves the QR corner, so both decisions have to come
+  // from the same expression.
+  const showQr = Boolean(qr && packageUrl);
+
   return (
     <Document title={model.title} author={model.agencyName || "Travories"} creator="Travories">
       <Page size={{ width: BROCHURE_PAGE.width, height }} style={styles.page}>
-        {qr && packageUrl && <QrCode matrix={qr} url={packageUrl} />}
+        {showQr && <QrCode matrix={qr!} url={packageUrl!} />}
 
-        <Header model={model} />
+        <Header model={model} hasQr={showQr} />
 
         <View style={styles.content}>
           <Gallery {...shared} />

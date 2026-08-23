@@ -29,14 +29,25 @@ const LABELS: Record<TravellerType, [singular: string, plural: string]> = {
   infants: ["Infant", "Infants"],
 };
 
-/** What the download dialog collects. Optional — the brochure works without it. */
+/**
+ * What the download dialog collects. Optional — the brochure works without it.
+ *
+ * The two halves are independent, because the dialog asks two separate
+ * questions: a lead can have a firm arrival date but no agreed head count, or
+ * settled numbers with the dates still open. Omitted counts mean general
+ * pricing (the group-size tier table); an omitted date means none is shown.
+ */
 export interface BrochureParty {
-  adults: number;
-  children: number;
-  infants: number;
+  adults?: number;
+  children?: number;
+  infants?: number;
   /** ISO `yyyy-mm-dd` from the date input. Often not fixed yet. */
   arrivalDate?: string;
 }
+
+/** Whether a party names any travellers, i.e. whether it can be priced. */
+export const hasPartyCounts = (party?: BrochureParty): boolean =>
+  !!party && (party.adults || 0) + (party.children || 0) + (party.infants || 0) > 0;
 
 export interface PartyLine {
   /** "Adults × 2" */

@@ -7,6 +7,7 @@ import type { BrochurePackageSource } from "./source.js";
 
 import {
   describeParty,
+  hasPartyCounts,
   discountSummary,
   formatArrivalDate,
   pricingTiers,
@@ -240,6 +241,8 @@ const tint = (hex: string, alpha: number): string => {
 };
 
 export function buildBrochureModel(pkg: BrochurePackageSource, party?: BrochureParty): BrochureModel {
+  const priced = hasPartyCounts(party);
+
   const photos = [pkg.packageCover, ...(pkg.packageMedia ?? [])]
     .map(mediaUrl)
     .filter(Boolean);
@@ -317,9 +320,11 @@ export function buildBrochureModel(pkg: BrochurePackageSource, party?: BrochureP
     days: (pkg.days ?? []).map(toDay),
     addons,
     services,
-    quote: party ? quoteParty(pkg, party) : undefined,
-    travellers: party ? describeParty(party) : "",
-    arrival: party ? formatArrivalDate(party.arrivalDate) : "",
+    // Head count and arrival date are asked independently, so a brochure can
+    // carry a date with generic tier pricing, or a quote with open dates.
+    quote: priced ? quoteParty(pkg, party!) : undefined,
+    travellers: priced ? describeParty(party!) : "",
+    arrival: formatArrivalDate(party?.arrivalDate),
     imageUrls: [],
   };
 
