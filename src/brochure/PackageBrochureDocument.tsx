@@ -361,13 +361,17 @@ const KeyFacts = ({ model, images }: Pick<DocProps, "model" | "images">) => {
 
 const DayCard = ({ day }: { day: BrochureDay }) => (
   <View style={styles.day}>
-    <View style={styles.dayAside}>
+    <View style={styles.dayHeader}>
       <Text style={styles.dayIndex}>{day.index}</Text>
-      <Text style={styles.dayTitle}>{day.title}</Text>
+      <View style={styles.dayTitleBox}>
+        <Text style={styles.dayTitle}>{day.title}</Text>
+      </View>
       <Text style={styles.dayDuration}>Duration : {day.duration}</Text>
     </View>
 
     <View style={styles.dayCard}>
+      <View style={styles.dayColumns}>
+        <View style={styles.dayColumn}>
       {day.description.length > 0 && (
         <View style={styles.dayBlock}>
           <Text style={styles.dayBlockLabel}>Description</Text>
@@ -403,6 +407,9 @@ const DayCard = ({ day }: { day: BrochureDay }) => (
         </View>
       </View>
 
+        </View>
+
+        <View style={styles.dayColumn}>
       {day.stops.length > 0 && (
         <View style={styles.dayBlock}>
           <Text style={styles.dayBlockLabel}>Stops in a Day</Text>
@@ -437,6 +444,8 @@ const DayCard = ({ day }: { day: BrochureDay }) => (
           ))}
         </View>
       )}
+        </View>
+      </View>
     </View>
   </View>
 );

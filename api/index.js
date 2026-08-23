@@ -194229,6 +194229,10 @@ var DIFFICULTY_FILL = {
 // src/brochure/styles.ts
 var sans = BROCHURE_FONT.sans;
 var TITLE_BLOCK_WIDTH = 1107;
+var DAY_LIST_INSET = 29;
+var DAY_GAP = 40;
+var DAY_COLUMN_GAP = 24;
+var DAY_COLUMN_WIDTH = (BROCHURE_PAGE.contentWidth - DAY_LIST_INSET * 2 - 48 - DAY_COLUMN_GAP) / 2;
 var SERVICE_LIST_INSET = 29;
 var SERVICE_CARD_GAP = 16;
 var SERVICE_PANEL_INNER = BROCHURE_PAGE.contentWidth - SERVICE_LIST_INSET * 2 - 40;
@@ -194330,26 +194334,42 @@ var styles = StyleSheet.create({
     letterSpacing: -0.42
   },
   /* ── Itinerary ──────────────────────────────────────────────────────── */
-  dayList: { gap: 60, marginHorizontal: 29 },
-  day: { flexDirection: "row", justifyContent: "space-between" },
-  dayAside: { width: 358 },
+  dayList: { gap: DAY_GAP, marginHorizontal: DAY_LIST_INSET },
+  /**
+   * Day number and title sit above the card rather than in a 358pt column
+   * beside it. Same reasoning as the service blocks: the column held three
+   * short lines against a card six times its height, and it cost the card a
+   * third of the page width — which is what pays for the two columns inside.
+   */
+  day: { gap: 20 },
+  dayHeader: { flexDirection: "row", alignItems: "center", gap: 16 },
   dayIndex: {
     fontSize: 52,
     fontWeight: 700,
     color: "rgba(126, 92, 217, 0.16)",
-    letterSpacing: 1.04,
-    marginBottom: -18
+    letterSpacing: 1.04
   },
+  // Takes the slack in the header row, so the duration keeps its natural width
+  // and stays hard right however long the title runs.
+  dayTitleBox: { flexGrow: 1, flexBasis: 0 },
   dayTitle: { fontSize: 22, fontWeight: 500, lineHeight: 1.045, color: BROCHURE_COLOR.violet, letterSpacing: -0.88 },
-  dayDuration: { marginTop: 8, fontSize: 14, color: BROCHURE_COLOR.text, letterSpacing: -0.56 },
+  dayDuration: { fontSize: 14, color: BROCHURE_COLOR.text, letterSpacing: -0.56 },
   dayCard: {
-    width: 822,
     borderWidth: 1,
     borderColor: BROCHURE_COLOR.stroke,
     borderRadius: 8,
-    padding: 24,
-    gap: 20
+    padding: 24
   },
+  /**
+   * The narrative on the left, the route on the right.
+   *
+   * Splitting this way rather than one block per column is what balances the
+   * two sides: description plus key facts measured closest to the stop
+   * timeline plus activity chips across a real 9-day package, and a day is
+   * only as tall as its taller column.
+   */
+  dayColumns: { flexDirection: "row", gap: DAY_COLUMN_GAP },
+  dayColumn: { width: DAY_COLUMN_WIDTH, gap: 20 },
   dayBlock: { gap: 16 },
   dayBlockLabel: { fontSize: 18, fontWeight: 500, color: BROCHURE_COLOR.primary, letterSpacing: -0.72 },
   dayCopy: { fontSize: 16, lineHeight: 1.5, color: BROCHURE_COLOR.text, letterSpacing: -0.32 },
@@ -194739,56 +194759,60 @@ var KeyFacts = ({ model, images }) => {
   ] });
 };
 var DayCard = ({ day }) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(View, { style: styles.day, children: [
-  /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(View, { style: styles.dayAside, children: [
+  /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(View, { style: styles.dayHeader, children: [
     /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Text, { style: styles.dayIndex, children: day.index }),
-    /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Text, { style: styles.dayTitle, children: day.title }),
+    /* @__PURE__ */ (0, import_jsx_runtime.jsx)(View, { style: styles.dayTitleBox, children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Text, { style: styles.dayTitle, children: day.title }) }),
     /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Text, { style: styles.dayDuration, children: [
       "Duration : ",
       day.duration
     ] })
   ] }),
-  /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(View, { style: styles.dayCard, children: [
-    day.description.length > 0 && /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(View, { style: styles.dayBlock, children: [
-      /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Text, { style: styles.dayBlockLabel, children: "Description" }),
-      /* @__PURE__ */ (0, import_jsx_runtime.jsx)(View, { style: { gap: 8 }, children: day.description.map((paragraph, index2) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Text, { style: styles.dayCopy, children: paragraph }, index2)) })
-    ] }),
-    /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(View, { style: styles.dayBlock, children: [
-      /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Text, { style: styles.dayBlockLabel, children: "Key Facts" }),
-      /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(View, { style: styles.dayMetaRow, children: [
-        /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(View, { style: styles.dayMetaItem, children: [
-          /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Icon, { name: "bed", size: 24 }),
-          /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Text, { style: styles.dayMetaText, children: day.accommodation })
-        ] }),
-        /* @__PURE__ */ (0, import_jsx_runtime.jsx)(View, { style: styles.separatorDot }),
-        /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(View, { style: styles.dayMetaItem, children: [
-          /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Icon, { name: "bus", size: 24 }),
-          /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Text, { style: styles.dayMetaText, children: day.transport })
-        ] }),
-        /* @__PURE__ */ (0, import_jsx_runtime.jsx)(View, { style: styles.separatorDot }),
-        /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(View, { style: [styles.dayMetaItem, { gap: 16 }], children: [
-          /* @__PURE__ */ (0, import_jsx_runtime.jsx)(View, { style: styles.meterTrack, children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(View, { style: [styles.meterFill, { width: 140 * day.difficultyFill }] }) }),
-          /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Text, { style: styles.dayMetaText, children: day.difficulty })
+  /* @__PURE__ */ (0, import_jsx_runtime.jsx)(View, { style: styles.dayCard, children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(View, { style: styles.dayColumns, children: [
+    /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(View, { style: styles.dayColumn, children: [
+      day.description.length > 0 && /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(View, { style: styles.dayBlock, children: [
+        /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Text, { style: styles.dayBlockLabel, children: "Description" }),
+        /* @__PURE__ */ (0, import_jsx_runtime.jsx)(View, { style: { gap: 8 }, children: day.description.map((paragraph, index2) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Text, { style: styles.dayCopy, children: paragraph }, index2)) })
+      ] }),
+      /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(View, { style: styles.dayBlock, children: [
+        /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Text, { style: styles.dayBlockLabel, children: "Key Facts" }),
+        /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(View, { style: styles.dayMetaRow, children: [
+          /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(View, { style: styles.dayMetaItem, children: [
+            /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Icon, { name: "bed", size: 24 }),
+            /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Text, { style: styles.dayMetaText, children: day.accommodation })
+          ] }),
+          /* @__PURE__ */ (0, import_jsx_runtime.jsx)(View, { style: styles.separatorDot }),
+          /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(View, { style: styles.dayMetaItem, children: [
+            /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Icon, { name: "bus", size: 24 }),
+            /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Text, { style: styles.dayMetaText, children: day.transport })
+          ] }),
+          /* @__PURE__ */ (0, import_jsx_runtime.jsx)(View, { style: styles.separatorDot }),
+          /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(View, { style: [styles.dayMetaItem, { gap: 16 }], children: [
+            /* @__PURE__ */ (0, import_jsx_runtime.jsx)(View, { style: styles.meterTrack, children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(View, { style: [styles.meterFill, { width: 140 * day.difficultyFill }] }) }),
+            /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Text, { style: styles.dayMetaText, children: day.difficulty })
+          ] })
         ] })
       ] })
     ] }),
-    day.stops.length > 0 && /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(View, { style: styles.dayBlock, children: [
-      /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Text, { style: styles.dayBlockLabel, children: "Stops in a Day" }),
-      /* @__PURE__ */ (0, import_jsx_runtime.jsx)(View, { children: day.stops.map((stop, index2) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(View, { style: styles.stopRow, children: [
-        /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(View, { style: styles.stopGutter, children: [
-          /* @__PURE__ */ (0, import_jsx_runtime.jsx)(View, { style: styles.stopOrdinalBox, children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Text, { style: styles.stopOrdinal, children: [
-            "Stop ",
-            index2 + 1
-          ] }) }),
-          /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(View, { style: styles.stopMarkerColumn, children: [
-            /* @__PURE__ */ (0, import_jsx_runtime.jsx)(View, { style: styles.stopMarker }),
-            index2 < day.stops.length - 1 && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(View, { style: styles.stopConnector })
-          ] })
-        ] }),
-        /* @__PURE__ */ (0, import_jsx_runtime.jsx)(View, { style: styles.stopLabelBox, children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Text, { style: styles.stopLabel, children: stop }) })
-      ] }, `${stop}-${index2}`)) })
-    ] }),
-    day.activities.length > 0 && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(View, { style: styles.chipRow, children: day.activities.map((activity, index2) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(View, { style: styles.chip, children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Text, { style: styles.chipText, children: activity }) }, `${activity}-${index2}`)) })
-  ] })
+    /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(View, { style: styles.dayColumn, children: [
+      day.stops.length > 0 && /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(View, { style: styles.dayBlock, children: [
+        /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Text, { style: styles.dayBlockLabel, children: "Stops in a Day" }),
+        /* @__PURE__ */ (0, import_jsx_runtime.jsx)(View, { children: day.stops.map((stop, index2) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(View, { style: styles.stopRow, children: [
+          /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(View, { style: styles.stopGutter, children: [
+            /* @__PURE__ */ (0, import_jsx_runtime.jsx)(View, { style: styles.stopOrdinalBox, children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Text, { style: styles.stopOrdinal, children: [
+              "Stop ",
+              index2 + 1
+            ] }) }),
+            /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(View, { style: styles.stopMarkerColumn, children: [
+              /* @__PURE__ */ (0, import_jsx_runtime.jsx)(View, { style: styles.stopMarker }),
+              index2 < day.stops.length - 1 && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(View, { style: styles.stopConnector })
+            ] })
+          ] }),
+          /* @__PURE__ */ (0, import_jsx_runtime.jsx)(View, { style: styles.stopLabelBox, children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Text, { style: styles.stopLabel, children: stop }) })
+        ] }, `${stop}-${index2}`)) })
+      ] }),
+      day.activities.length > 0 && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(View, { style: styles.chipRow, children: day.activities.map((activity, index2) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(View, { style: styles.chip, children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Text, { style: styles.chipText, children: activity }) }, `${activity}-${index2}`)) })
+    ] })
+  ] }) })
 ] });
 var AddOns = ({ model, images }) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Section, { heading: "Optional Add-Ons", children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(View, { style: styles.addonList, children: model.addons.map((addon, index2) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(View, { style: styles.addon, children: [
   /* @__PURE__ */ (0, import_jsx_runtime.jsx)(View, { style: styles.addonThumbBox, children: addon.image && images[addon.image] && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Image, { src: images[addon.image], style: styles.addonThumbImage }) }),

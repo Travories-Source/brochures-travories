@@ -11,6 +11,13 @@ const TITLE_BLOCK_WIDTH = 1107;
  * Same column, shrunk on both sides by the width of the QR corner plus a
  * breathing gap, so it remains centred on the page while clearing the code.
  */
+/** Vertical rhythm of the itinerary, and the two columns inside each day card. */
+const DAY_LIST_INSET = 29;
+const DAY_GAP = 40;
+const DAY_COLUMN_GAP = 24;
+const DAY_COLUMN_WIDTH =
+  (BROCHURE_PAGE.contentWidth - DAY_LIST_INSET * 2 - 48 - DAY_COLUMN_GAP) / 2;
+
 /** Two service cards per row, inside the panel's 20pt padding. */
 const SERVICE_LIST_INSET = 29;
 const SERVICE_CARD_GAP = 16;
@@ -130,26 +137,42 @@ export const styles = StyleSheet.create({
   },
 
   /* ── Itinerary ──────────────────────────────────────────────────────── */
-  dayList: { gap: 60, marginHorizontal: 29 },
-  day: { flexDirection: "row", justifyContent: "space-between" },
-  dayAside: { width: 358 },
+  dayList: { gap: DAY_GAP, marginHorizontal: DAY_LIST_INSET },
+  /**
+   * Day number and title sit above the card rather than in a 358pt column
+   * beside it. Same reasoning as the service blocks: the column held three
+   * short lines against a card six times its height, and it cost the card a
+   * third of the page width — which is what pays for the two columns inside.
+   */
+  day: { gap: 20 },
+  dayHeader: { flexDirection: "row", alignItems: "center", gap: 16 },
   dayIndex: {
     fontSize: 52,
     fontWeight: 700,
     color: "rgba(126, 92, 217, 0.16)",
     letterSpacing: 1.04,
-    marginBottom: -18,
   },
+  // Takes the slack in the header row, so the duration keeps its natural width
+  // and stays hard right however long the title runs.
+  dayTitleBox: { flexGrow: 1, flexBasis: 0 },
   dayTitle: { fontSize: 22, fontWeight: 500, lineHeight: 1.045, color: C.violet, letterSpacing: -0.88 },
-  dayDuration: { marginTop: 8, fontSize: 14, color: C.text, letterSpacing: -0.56 },
+  dayDuration: { fontSize: 14, color: C.text, letterSpacing: -0.56 },
   dayCard: {
-    width: 822,
     borderWidth: 1,
     borderColor: C.stroke,
     borderRadius: 8,
     padding: 24,
-    gap: 20,
   },
+  /**
+   * The narrative on the left, the route on the right.
+   *
+   * Splitting this way rather than one block per column is what balances the
+   * two sides: description plus key facts measured closest to the stop
+   * timeline plus activity chips across a real 9-day package, and a day is
+   * only as tall as its taller column.
+   */
+  dayColumns: { flexDirection: "row", gap: DAY_COLUMN_GAP },
+  dayColumn: { width: DAY_COLUMN_WIDTH, gap: 20 },
   dayBlock: { gap: 16 },
   dayBlockLabel: { fontSize: 18, fontWeight: 500, color: C.primary, letterSpacing: -0.72 },
   dayCopy: { fontSize: 16, lineHeight: 1.5, color: C.text, letterSpacing: -0.32 },
