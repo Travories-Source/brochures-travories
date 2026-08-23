@@ -194229,6 +194229,10 @@ var DIFFICULTY_FILL = {
 // src/brochure/styles.ts
 var sans = BROCHURE_FONT.sans;
 var TITLE_BLOCK_WIDTH = 1107;
+var SERVICE_LIST_INSET = 29;
+var SERVICE_CARD_GAP = 16;
+var SERVICE_PANEL_INNER = BROCHURE_PAGE.contentWidth - SERVICE_LIST_INSET * 2 - 40;
+var SERVICE_CARD_WIDTH = (SERVICE_PANEL_INNER - SERVICE_CARD_GAP) / 2;
 var TITLE_QR_GAP = 32;
 var TITLE_BLOCK_WIDTH_WITH_QR = BROCHURE_PAGE.width - 2 * (BROCHURE_PAGE.paddingX + BROCHURE_PAGE.qrSize + TITLE_QR_GAP);
 var styles = StyleSheet.create({
@@ -194409,19 +194413,32 @@ var styles = StyleSheet.create({
   addonNote: { fontSize: 14, fontStyle: "italic", color: BROCHURE_COLOR.muted, letterSpacing: -0.56, textAlign: "right" },
   /* ── Services ───────────────────────────────────────────────────────── */
   serviceList: { gap: 24, marginHorizontal: 29 },
-  service: { flexDirection: "row" },
-  serviceAside: { width: 460 },
+  /**
+   * The label stacks above the panel rather than sitting in a column beside it.
+   *
+   * As a side-by-side row the label's 460pt column stood empty under two short
+   * lines while the panel ran on for hundreds of points, and it squeezed the
+   * cards into a 677pt text column — 47% of the page width unused on every
+   * line. Stacking costs the label's own height once per block and buys the
+   * panel the full column, which is what makes the two-up card grid below fit.
+   */
+  service: { gap: 20 },
   serviceGhost: { fontSize: 52, fontWeight: 700, letterSpacing: -0.52, marginBottom: -22 },
   serviceLabel: { fontSize: 22, fontWeight: 500, lineHeight: 1.045, letterSpacing: -0.88 },
   servicePanel: {
-    width: 766,
     backgroundColor: BROCHURE_COLOR.background,
     borderRadius: 8,
     paddingHorizontal: 20,
-    paddingVertical: 32,
-    gap: 16
+    paddingVertical: 32
   },
+  /**
+   * Two cards per row. Wrapping rows rather than balanced columns: a row is as
+   * tall as its taller card, which measured within 8% of perfectly balanced
+   * columns on a real 9-day package and needs no height estimation to lay out.
+   */
+  serviceCardGrid: { flexDirection: "row", flexWrap: "wrap", gap: SERVICE_CARD_GAP },
   serviceCard: {
+    width: SERVICE_CARD_WIDTH,
     backgroundColor: BROCHURE_COLOR.white,
     borderWidth: 1,
     borderColor: BROCHURE_COLOR.stroke,
@@ -194429,6 +194446,12 @@ var styles = StyleSheet.create({
     padding: 24,
     gap: 4
   },
+  /**
+   * A card with no partner in its row spans the panel instead of leaving half
+   * of it blank — which is both tidier and shorter, since the wider text column
+   * wraps fewer lines. Applies to a lone card and to the last of an odd number.
+   */
+  serviceCardWide: { width: SERVICE_PANEL_INNER },
   serviceCardHeading: { fontSize: 18, fontWeight: 500, letterSpacing: -0.72 },
   serviceItem: { flexDirection: "row" },
   serviceBullet: { width: 24, fontSize: 16, lineHeight: 1.5, color: BROCHURE_COLOR.text },
@@ -194785,17 +194808,27 @@ var AddOns = ({ model, images }) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(
   ] })
 ] }, `${addon.name}-${index2}`)) }) });
 var ServiceBlock = ({ service }) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(View, { style: styles.service, children: [
-  /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(View, { style: styles.serviceAside, children: [
+  /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(View, { children: [
     /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Text, { style: [styles.serviceGhost, { color: service.ghostColor }], children: service.ghost }),
     /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Text, { style: [styles.serviceLabel, { color: service.accentDeep }], children: service.label })
   ] }),
-  /* @__PURE__ */ (0, import_jsx_runtime.jsx)(View, { style: styles.servicePanel, children: service.groups.map((group, index2) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(View, { style: styles.serviceCard, children: [
-    !!group.category && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Text, { style: [styles.serviceCardHeading, { color: service.accent }], children: group.category }),
-    group.items.map((item, itemIndex) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(View, { style: styles.serviceItem, children: [
-      /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Text, { style: styles.serviceBullet, children: "\u2022" }),
-      /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Text, { style: styles.serviceItemText, children: item })
-    ] }, itemIndex))
-  ] }, `${group.category}-${index2}`)) })
+  /* @__PURE__ */ (0, import_jsx_runtime.jsx)(View, { style: styles.servicePanel, children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(View, { style: styles.serviceCardGrid, children: service.groups.map((group, index2) => {
+    const orphan = service.groups.length % 2 === 1 && index2 === service.groups.length - 1;
+    return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(
+      View,
+      {
+        style: orphan ? [styles.serviceCard, styles.serviceCardWide] : styles.serviceCard,
+        children: [
+          !!group.category && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Text, { style: [styles.serviceCardHeading, { color: service.accent }], children: group.category }),
+          group.items.map((item, itemIndex) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(View, { style: styles.serviceItem, children: [
+            /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Text, { style: styles.serviceBullet, children: "\u2022" }),
+            /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Text, { style: styles.serviceItemText, children: item })
+          ] }, itemIndex))
+        ]
+      },
+      `${group.category}-${index2}`
+    );
+  }) }) })
 ] });
 var Footer = ({ agencyName }) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(View, { style: styles.footer, children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(View, { style: styles.footerInner, children: [
   /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Text, { style: styles.footerTitle, children: "Experience Travel with Travories" }),
