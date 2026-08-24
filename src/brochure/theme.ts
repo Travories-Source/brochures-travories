@@ -43,6 +43,13 @@ export const BROCHURE_PAGE = {
  */
 export const BROCHURE_A4_PAGE_HEIGHT = (BROCHURE_PAGE.width * 297) / 210;
 
+/** Top and bottom margin on a paginated page. ~12mm once printed. */
+export const BROCHURE_PAGED_PADDING_Y = 56;
+
+/** Space a paginated page has for content, between its margins. */
+export const BROCHURE_PAGED_BODY_HEIGHT =
+  BROCHURE_A4_PAGE_HEIGHT - BROCHURE_PAGED_PADDING_Y * 2;
+
 export const BROCHURE_COLOR = {
   /** Section headings and day-card labels. */
   primary: "#5b4d81",

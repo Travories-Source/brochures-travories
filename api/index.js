@@ -194180,6 +194180,8 @@ var BROCHURE_PAGE = {
   blockGap: 80
 };
 var BROCHURE_A4_PAGE_HEIGHT = BROCHURE_PAGE.width * 297 / 210;
+var BROCHURE_PAGED_PADDING_Y = 56;
+var BROCHURE_PAGED_BODY_HEIGHT = BROCHURE_A4_PAGE_HEIGHT - BROCHURE_PAGED_PADDING_Y * 2;
 var BROCHURE_COLOR = {
   /** Section headings and day-card labels. */
   primary: "#5b4d81",
@@ -194230,7 +194232,6 @@ var DIFFICULTY_FILL = {
 // src/brochure/styles.ts
 var sans = BROCHURE_FONT.sans;
 var TITLE_BLOCK_WIDTH = 1107;
-var PAGED_PADDING_Y = 56;
 var DAY_LIST_INSET = 29;
 var DAY_GAP = 40;
 var DAY_COLUMN_GAP = 24;
@@ -194257,7 +194258,7 @@ var styles = StyleSheet.create({
    * pages they are paid twelve times, and 76pt of it decided whether two day
    * blocks fitted on a sheet or one did. 56pt is ~12mm on printed A4.
    */
-  pagePaged: { paddingTop: PAGED_PADDING_Y, paddingBottom: PAGED_PADDING_Y },
+  pagePaged: { paddingTop: BROCHURE_PAGED_PADDING_Y, paddingBottom: BROCHURE_PAGED_PADDING_Y },
   /* ── Header ─────────────────────────────────────────────────────────── */
   header: { alignItems: "center", gap: 40 },
   brandRow: { flexDirection: "row", alignItems: "center", gap: 12, height: 34 },
@@ -194290,6 +194291,17 @@ var styles = StyleSheet.create({
   pricePillUnit: { fontSize: 20, fontWeight: 400, color: BROCHURE_COLOR.secondary, letterSpacing: -0.8 },
   /* ── Shared section furniture ───────────────────────────────────────── */
   content: { marginTop: BROCHURE_PAGE.blockGap, gap: BROCHURE_PAGE.sectionGap },
+  /**
+   * A heading that lives inside one of the inset lists (days, services) so it
+   * can travel with the first block. The negative inset cancels the list's own
+   * margin, keeping it on the same left edge as every other section heading.
+   */
+  sectionHeadingInList: {
+    marginLeft: -DAY_LIST_INSET,
+    // The block's own gap supplies most of the space below the heading; this
+    // tops it up to the 24pt every other section heading leaves.
+    marginBottom: 4
+  },
   sectionHeading: {
     fontSize: 32,
     fontWeight: 600,
@@ -194716,9 +194728,10 @@ var QrCode = ({ matrix, url: url2 }) => {
 var Section = ({
   heading,
   children,
-  paged
-}) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(View, { children: [
-  /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Text, { style: styles.sectionHeading, minPresenceAhead: paged ? 160 : void 0, children: heading }),
+  paged,
+  solid
+}) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(View, { wrap: !paged || !solid, children: [
+  /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Text, { style: styles.sectionHeading, children: heading }),
   children
 ] });
 var Header = ({ model, hasQr }) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(View, { style: styles.header, children: [
@@ -194779,7 +194792,12 @@ var KeyFacts = ({ model, images, paged }) => {
     /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Picture, { src: model.featureImage, style: styles.keyFactsImage, images })
   ] });
 };
-var DayCard = ({ day, paged }) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(View, { style: styles.day, wrap: !paged, children: [
+var DayCard = ({
+  day,
+  paged,
+  heading
+}) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(View, { style: styles.day, wrap: !paged, children: [
+  !!heading && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Text, { style: [styles.sectionHeading, styles.sectionHeadingInList], children: heading }),
   /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(View, { style: styles.dayHeader, children: [
     /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Text, { style: styles.dayIndex, children: day.index }),
     /* @__PURE__ */ (0, import_jsx_runtime.jsx)(View, { style: styles.dayTitleBox, children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Text, { style: styles.dayTitle, children: day.title }) }),
@@ -194852,43 +194870,72 @@ var AddOns = ({ model, images }) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(
     ] })
   ] })
 ] }, `${addon.name}-${index2}`)) }) });
+var SERVICE_CHARS_PER_LINE = 58;
+var SERVICE_CARD_CHROME = 48 + 28;
+var SERVICE_BLOCK_CHROME = 75 + 20 + 64;
+var estimateServiceBlockHeight = (service) => {
+  const rows = [];
+  for (let index2 = 0; index2 < service.groups.length; index2 += 2) {
+    const heights = service.groups.slice(index2, index2 + 2).map(
+      (group) => SERVICE_CARD_CHROME + group.items.reduce(
+        (sum, item) => sum + 28 * Math.max(1, Math.ceil(item.length / SERVICE_CHARS_PER_LINE)),
+        0
+      )
+    );
+    rows.push(Math.max(...heights));
+  }
+  return SERVICE_BLOCK_CHROME + rows.reduce((sum, height2) => sum + height2, 0) + SERVICE_CARD_GAP_ESTIMATE * Math.max(0, rows.length - 1);
+};
+var SERVICE_CARD_GAP_ESTIMATE = 16;
 var ServiceBlock = ({
   service,
   paged,
-  first: first2
+  first: first2,
+  heading
 }) => {
+  const fitsOnePage = estimateServiceBlockHeight(service) <= BROCHURE_PAGED_BODY_HEIGHT;
   const rows = [];
   for (let index2 = 0; index2 < service.groups.length; index2 += 2) {
     rows.push(service.groups.slice(index2, index2 + 2));
   }
   return (
     /*
-     * Paginated, each block starts its own page. It is not only tidier — the
-     * label never stranded at a page foot — it is load-bearing: when one of
-     * these panels began with only a sliver of page left, @react-pdf stopped
-     * paginating it and laid the remaining rows on top of each other at the
-     * bottom, losing items outright.
+     * A block that fits inside one page is marked unbreakable, so it moves
+     * whole rather than splitting; one that cannot is forced onto a fresh page
+     * instead, which is load-bearing rather than cosmetic. When a panel began
+     * with only a sliver of page left, @react-pdf stopped paginating it and
+     * laid the remaining rows on top of each other at the foot of the sheet,
+     * losing items outright — starting at the top gives it the most room.
      */
-    /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(View, { style: styles.service, break: paged && !first2, children: [
-      /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(View, { children: [
-        /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Text, { style: [styles.serviceGhost, { color: service.ghostColor }], children: service.ghost }),
-        /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Text, { style: [styles.serviceLabel, { color: service.accentDeep }], children: service.label })
-      ] }),
-      /* @__PURE__ */ (0, import_jsx_runtime.jsx)(View, { style: styles.servicePanel, children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(View, { style: styles.serviceCardRows, children: rows.map((row, rowIndex) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(View, { style: styles.serviceCardRow, wrap: !paged, children: row.map((group, index2) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(
-        View,
-        {
-          style: row.length === 1 ? [styles.serviceCard, styles.serviceCardWide] : styles.serviceCard,
-          children: [
-            !!group.category && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Text, { style: [styles.serviceCardHeading, { color: service.accent }], children: group.category }),
-            group.items.map((item, itemIndex) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(View, { style: styles.serviceItem, children: [
-              /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Text, { style: styles.serviceBullet, children: "\u2022" }),
-              /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Text, { style: styles.serviceItemText, children: item })
-            ] }, itemIndex))
-          ]
-        },
-        `${group.category}-${index2}`
-      )) }, rowIndex)) }) })
-    ] })
+    /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(
+      View,
+      {
+        style: styles.service,
+        wrap: !paged || !fitsOnePage,
+        break: paged && !fitsOnePage && !first2,
+        children: [
+          !!heading && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Text, { style: [styles.sectionHeading, styles.sectionHeadingInList], children: heading }),
+          /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(View, { children: [
+            /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Text, { style: [styles.serviceGhost, { color: service.ghostColor }], children: service.ghost }),
+            /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Text, { style: [styles.serviceLabel, { color: service.accentDeep }], children: service.label })
+          ] }),
+          /* @__PURE__ */ (0, import_jsx_runtime.jsx)(View, { style: styles.servicePanel, children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(View, { style: styles.serviceCardRows, children: rows.map((row, rowIndex) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(View, { style: styles.serviceCardRow, wrap: !paged, children: row.map((group, index2) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(
+            View,
+            {
+              style: row.length === 1 ? [styles.serviceCard, styles.serviceCardWide] : styles.serviceCard,
+              children: [
+                !!group.category && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Text, { style: [styles.serviceCardHeading, { color: service.accent }], children: group.category }),
+                group.items.map((item, itemIndex) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(View, { style: styles.serviceItem, children: [
+                  /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Text, { style: styles.serviceBullet, children: "\u2022" }),
+                  /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Text, { style: styles.serviceItemText, children: item })
+                ] }, itemIndex))
+              ]
+            },
+            `${group.category}-${index2}`
+          )) }, rowIndex)) }) })
+        ]
+      }
+    )
   );
 };
 var Footer = ({ agencyName, paged }) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(View, { style: styles.footer, wrap: !paged, children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(View, { style: styles.footerInner, children: [
@@ -194946,26 +194993,35 @@ function PackageBrochureDocument({ model, images, height: height2, qr, packageUr
         /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Header, { model, hasQr: showQr }),
         /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(View, { style: styles.content, children: [
           /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Gallery, { ...shared, paged }),
-          model.overview.length > 0 && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Section, { heading: "Overview", paged, children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(View, { style: { gap: 10 }, children: model.overview.map((paragraph, index2) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Text, { style: styles.overviewCopy, children: paragraph }, index2)) }) }),
+          model.overview.length > 0 && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Section, { heading: "Overview", paged, solid: true, children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(View, { style: { gap: 10 }, children: model.overview.map((paragraph, index2) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Text, { style: styles.overviewCopy, children: paragraph }, index2)) }) }),
           /* @__PURE__ */ (0, import_jsx_runtime.jsx)(KeyFacts, { ...shared, paged }),
-          /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Section, { heading: "Pricing", paged, children: [
+          /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Section, { heading: "Pricing", paged, solid: true, children: [
             /* @__PURE__ */ (0, import_jsx_runtime.jsx)(View, { style: styles.priceRow, wrap: !paged, children: pricingCards.map((card, index2) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(View, { style: styles.priceCard, children: [
               /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Text, { style: styles.priceCardLabel, children: card.label }),
               /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Text, { style: styles.priceCardValue, children: card.value })
             ] }, `${card.label}-${index2}`)) }),
             pricingNotes.map((note) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Text, { style: styles.priceNote, children: note }, note))
           ] }),
-          model.days.length > 0 && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Section, { heading: "Itinerary", paged, children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(View, { style: styles.dayList, children: model.days.map((day) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(DayCard, { day, paged }, day.index)) }) }),
+          model.days.length > 0 && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(View, { style: styles.dayList, children: model.days.map((day, index2) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(
+            DayCard,
+            {
+              day,
+              paged,
+              heading: index2 === 0 ? "Itinerary" : void 0
+            },
+            day.index
+          )) }),
           model.addons.length > 0 && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(AddOns, { ...shared }),
-          model.services.length > 0 && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Section, { heading: "Services", paged, children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(View, { style: styles.serviceList, children: model.services.map((service, index2) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(
+          model.services.length > 0 && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(View, { style: styles.serviceList, children: model.services.map((service, index2) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(
             ServiceBlock,
             {
               service,
               paged,
-              first: index2 === 0
+              first: index2 === 0,
+              heading: index2 === 0 ? "Services" : void 0
             },
             service.ghost
-          )) }) })
+          )) })
         ] }),
         /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Footer, { agencyName: model.agencyName, paged })
       ]
