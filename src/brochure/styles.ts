@@ -1,6 +1,6 @@
 import { StyleSheet } from "@react-pdf/renderer";
 
-import { BROCHURE_COLOR as C, BROCHURE_FONT, BROCHURE_PAGE } from "./theme.js";
+import { BROCHURE_COLOR as C, BROCHURE_FONT, BROCHURE_PAGE, BROCHURE_PAGED_PADDING_Y } from "./theme.js";
 
 const sans = BROCHURE_FONT.sans;
 
@@ -11,9 +11,6 @@ const TITLE_BLOCK_WIDTH = 1107;
  * Same column, shrunk on both sides by the width of the QR corner plus a
  * breathing gap, so it remains centred on the page while clearing the code.
  */
-/** Top and bottom margin when the brochure is broken into printable pages. */
-const PAGED_PADDING_Y = 56;
-
 /** Vertical rhythm of the itinerary, and the two columns inside each day card. */
 const DAY_LIST_INSET = 29;
 const DAY_GAP = 40;
@@ -54,7 +51,7 @@ export const styles = StyleSheet.create({
    * pages they are paid twelve times, and 76pt of it decided whether two day
    * blocks fitted on a sheet or one did. 56pt is ~12mm on printed A4.
    */
-  pagePaged: { paddingTop: PAGED_PADDING_Y, paddingBottom: PAGED_PADDING_Y },
+  pagePaged: { paddingTop: BROCHURE_PAGED_PADDING_Y, paddingBottom: BROCHURE_PAGED_PADDING_Y },
 
   /* ── Header ─────────────────────────────────────────────────────────── */
   header: { alignItems: "center", gap: 40 },
@@ -89,6 +86,17 @@ export const styles = StyleSheet.create({
 
   /* ── Shared section furniture ───────────────────────────────────────── */
   content: { marginTop: BROCHURE_PAGE.blockGap, gap: BROCHURE_PAGE.sectionGap },
+  /**
+   * A heading that lives inside one of the inset lists (days, services) so it
+   * can travel with the first block. The negative inset cancels the list's own
+   * margin, keeping it on the same left edge as every other section heading.
+   */
+  sectionHeadingInList: {
+    marginLeft: -DAY_LIST_INSET,
+    // The block's own gap supplies most of the space below the heading; this
+    // tops it up to the 24pt every other section heading leaves.
+    marginBottom: 4,
+  },
   sectionHeading: {
     fontSize: 32,
     fontWeight: 600,

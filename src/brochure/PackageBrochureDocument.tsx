@@ -6,7 +6,12 @@ import { BROCHURE_ICONS, type BrochureIconName, type IconSpec } from "./iconPath
 import type { BrochureDay, BrochureModel, BrochureService } from "./model.js";
 import type { QrMatrix } from "./qr.js";
 import { styles } from "./styles.js";
-import { BROCHURE_COLOR as C, BROCHURE_CURRENCY, BROCHURE_PAGE } from "./theme.js";
+import {
+  BROCHURE_COLOR as C,
+  BROCHURE_CURRENCY,
+  BROCHURE_PAGE,
+  BROCHURE_PAGED_BODY_HEIGHT,
+} from "./theme.js";
 
 /** Travories wordmark, lifted from `components/Common/SiteLayout/Navbar/Logo.tsx`. */
 const LOGO_VIEWBOX = "110 560 860 160";
@@ -274,16 +279,25 @@ const Section = ({
   heading,
   children,
   paged,
+  solid,
 }: {
   heading: string;
   children: React.ReactNode;
   paged?: boolean;
+  /**
+   * Move the whole section rather than let it break. For sections that are
+   * short by nature — a paragraph of overview, a row of price cards — this is
+   * what stops the heading being stranded alone at the foot of a page with its
+   * content on the next one.
+   *
+   * `minPresenceAhead` on the heading cannot do this: @react-pdf only breaks
+   * an element that has a previous sibling to break away from, and a heading
+   * is the first thing in its section.
+   */
+  solid?: boolean;
 }) => (
-  <View>
-    {/* A heading alone at the foot of a page is worse than a shorter page. */}
-    <Text style={styles.sectionHeading} minPresenceAhead={paged ? 160 : undefined}>
-      {heading}
-    </Text>
+  <View wrap={!paged || !solid}>
+    <Text style={styles.sectionHeading}>{heading}</Text>
     {children}
   </View>
 );
@@ -379,8 +393,23 @@ const KeyFacts = ({ model, images, paged }: Pick<DocProps, "model" | "images" | 
   );
 };
 
-const DayCard = ({ day, paged }: { day: BrochureDay; paged?: boolean }) => (
+const DayCard = ({
+  day,
+  paged,
+  heading,
+}: {
+  day: BrochureDay;
+  paged?: boolean;
+  /**
+   * Rendered inside this block when set, so the section heading travels with
+   * the first day instead of being stranded at the foot of the previous page.
+   */
+  heading?: string;
+}) => (
   <View style={styles.day} wrap={!paged}>
+    {!!heading && (
+      <Text style={[styles.sectionHeading, styles.sectionHeadingInList]}>{heading}</Text>
+    )}
     <View style={styles.dayHeader}>
       <Text style={styles.dayIndex}>{day.index}</Text>
       <View style={styles.dayTitleBox}>
@@ -498,16 +527,57 @@ const AddOns = ({ model, images }: Pick<DocProps, "model" | "images">) => (
   </Section>
 );
 
+/**
+ * Rough height of a service block, in points.
+ *
+ * Only accurate enough to answer one question: can this block move to the next
+ * page whole, or must it be allowed to split? Deliberately pessimistic — a
+ * character count per line rather than real measurement — because the cost of
+ * over-estimating is a page break we did not need, and the cost of
+ * under-estimating is content pushed off the bottom of the sheet.
+ */
+const SERVICE_CHARS_PER_LINE = 58;
+const SERVICE_CARD_CHROME = 48 + 28;
+const SERVICE_BLOCK_CHROME = 75 + 20 + 64;
+
+const estimateServiceBlockHeight = (service: BrochureService): number => {
+  const rows: number[] = [];
+  for (let index = 0; index < service.groups.length; index += 2) {
+    const heights = service.groups.slice(index, index + 2).map(
+      (group) =>
+        SERVICE_CARD_CHROME +
+        group.items.reduce(
+          (sum, item) => sum + 28 * Math.max(1, Math.ceil(item.length / SERVICE_CHARS_PER_LINE)),
+          0,
+        ),
+    );
+    rows.push(Math.max(...heights));
+  }
+  return (
+    SERVICE_BLOCK_CHROME +
+    rows.reduce((sum, height) => sum + height, 0) +
+    SERVICE_CARD_GAP_ESTIMATE * Math.max(0, rows.length - 1)
+  );
+};
+const SERVICE_CARD_GAP_ESTIMATE = 16;
+
 const ServiceBlock = ({
   service,
   paged,
   first,
+  heading,
 }: {
   service: BrochureService;
   paged?: boolean;
   first?: boolean;
+  /** Section heading, rendered inside the first block so it travels with it. */
+  heading?: string;
 }) => {
   // Pairs, so each row is a block that can be kept whole across a page break.
+  // A pessimistic estimate decides how this block is allowed to break; see
+  // estimateServiceBlockHeight.
+  const fitsOnePage = estimateServiceBlockHeight(service) <= BROCHURE_PAGED_BODY_HEIGHT;
+
   const rows: BrochureService["groups"][] = [];
   for (let index = 0; index < service.groups.length; index += 2) {
     rows.push(service.groups.slice(index, index + 2));
@@ -515,13 +585,21 @@ const ServiceBlock = ({
 
   return (
     /*
-     * Paginated, each block starts its own page. It is not only tidier — the
-     * label never stranded at a page foot — it is load-bearing: when one of
-     * these panels began with only a sliver of page left, @react-pdf stopped
-     * paginating it and laid the remaining rows on top of each other at the
-     * bottom, losing items outright.
+     * A block that fits inside one page is marked unbreakable, so it moves
+     * whole rather than splitting; one that cannot is forced onto a fresh page
+     * instead, which is load-bearing rather than cosmetic. When a panel began
+     * with only a sliver of page left, @react-pdf stopped paginating it and
+     * laid the remaining rows on top of each other at the foot of the sheet,
+     * losing items outright — starting at the top gives it the most room.
      */
-    <View style={styles.service} break={paged && !first}>
+    <View
+      style={styles.service}
+      wrap={!paged || !fitsOnePage}
+      break={paged && !fitsOnePage && !first}
+    >
+      {!!heading && (
+        <Text style={[styles.sectionHeading, styles.sectionHeadingInList]}>{heading}</Text>
+      )}
       <View>
         <Text style={[styles.serviceGhost, { color: service.ghostColor }]}>{service.ghost}</Text>
         <Text style={[styles.serviceLabel, { color: service.accentDeep }]}>{service.label}</Text>
@@ -646,7 +724,7 @@ export function PackageBrochureDocument({ model, images, height, qr, packageUrl,
           <Gallery {...shared} paged={paged} />
 
           {model.overview.length > 0 && (
-            <Section heading="Overview" paged={paged}>
+            <Section heading="Overview" paged={paged} solid>
               <View style={{ gap: 10 }}>
                 {model.overview.map((paragraph, index) => (
                   <Text key={index} style={styles.overviewCopy}>
@@ -659,7 +737,7 @@ export function PackageBrochureDocument({ model, images, height, qr, packageUrl,
 
           <KeyFacts {...shared} paged={paged} />
 
-          <Section heading="Pricing" paged={paged}>
+          <Section heading="Pricing" paged={paged} solid>
               <View style={styles.priceRow} wrap={!paged}>
                 {pricingCards.map((card, index) => (
                   <View key={`${card.label}-${index}`} style={styles.priceCard}>
@@ -676,30 +754,32 @@ export function PackageBrochureDocument({ model, images, height, qr, packageUrl,
           </Section>
 
           {model.days.length > 0 && (
-            <Section heading="Itinerary" paged={paged}>
-              <View style={styles.dayList}>
-                {model.days.map((day) => (
-                  <DayCard key={day.index} day={day} paged={paged} />
-                ))}
-              </View>
-            </Section>
+            <View style={styles.dayList}>
+              {model.days.map((day, index) => (
+                <DayCard
+                  key={day.index}
+                  day={day}
+                  paged={paged}
+                  heading={index === 0 ? "Itinerary" : undefined}
+                />
+              ))}
+            </View>
           )}
 
           {model.addons.length > 0 && <AddOns {...shared} />}
 
           {model.services.length > 0 && (
-            <Section heading="Services" paged={paged}>
-              <View style={styles.serviceList}>
-                {model.services.map((service, index) => (
-                  <ServiceBlock
-                    key={service.ghost}
-                    service={service}
-                    paged={paged}
-                    first={index === 0}
-                  />
-                ))}
-              </View>
-            </Section>
+            <View style={styles.serviceList}>
+              {model.services.map((service, index) => (
+                <ServiceBlock
+                  key={service.ghost}
+                  service={service}
+                  paged={paged}
+                  first={index === 0}
+                  heading={index === 0 ? "Services" : undefined}
+                />
+              ))}
+            </View>
           )}
         </View>
 
