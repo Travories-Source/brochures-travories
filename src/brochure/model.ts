@@ -36,6 +36,7 @@ export interface BrochureDay {
   difficultyFill: number;
   stops: string[];
   activities: string[];
+  routeMap: BrochureOverviewMap | null;
 }
 
 export interface BrochureAddon {
@@ -238,6 +239,7 @@ const toDay = (day: any, position: number): BrochureDay => {
     difficultyFill: difficultyFill(flat.difficulty),
     stops,
     activities: activityNames,
+    routeMap: buildOverviewMap([day]),
   };
 };
 

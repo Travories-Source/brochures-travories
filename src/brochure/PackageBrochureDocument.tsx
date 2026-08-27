@@ -2,6 +2,7 @@
 import React from "react";
 import { Document, Image, Link, Page, Path, Rect, Svg, Text, View } from "@react-pdf/renderer";
 
+import { BrochureOverviewMap } from "./BrochureOverviewMap.js";
 import { BROCHURE_ICONS, type BrochureIconName, type IconSpec } from "./iconPaths.js";
 import type { BrochureDay, BrochureModel, BrochureService } from "./model.js";
 import type { QrMatrix } from "./qr.js";
@@ -481,6 +482,13 @@ const DayCard = ({
               </View>
             ))}
           </View>
+        </View>
+      )}
+
+      {day.routeMap && (
+        <View style={styles.dayRouteMap}>
+          <Text style={styles.dayBlockLabel}>Route</Text>
+          <BrochureOverviewMap map={day.routeMap} compact />
         </View>
       )}
 

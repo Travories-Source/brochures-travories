@@ -6,6 +6,8 @@ import { BROCHURE_COLOR as C } from "./theme.js";
 
 const WIDTH = 720;
 const HEIGHT = 360;
+const COMPACT_WIDTH = 500;
+const COMPACT_HEIGHT = 210;
 const PAD_X = 76;
 const PAD_Y = 42;
 const MAX_KEY_STOPS = 7;
@@ -19,11 +21,11 @@ const routeStyle = (mode: BrochureMapRoute["mode"]) => {
   return { color: C.muted, dash: "3 5", label: "Route" };
 };
 
-const keyStops = <T extends { sequence: number }>(stops: T[]): T[] => {
-  if (stops.length <= MAX_KEY_STOPS) return stops;
+const keyStops = <T extends { sequence: number }>(stops: T[], limit = MAX_KEY_STOPS): T[] => {
+  if (stops.length <= limit) return stops;
   const selected = new Set<number>();
-  for (let index = 0; index < MAX_KEY_STOPS; index += 1) {
-    selected.add(Math.round((index * (stops.length - 1)) / (MAX_KEY_STOPS - 1)));
+  for (let index = 0; index < limit; index += 1) {
+    selected.add(Math.round((index * (stops.length - 1)) / (limit - 1)));
   }
   return stops.filter((_, index) => selected.has(index));
 };
@@ -32,15 +34,15 @@ type LabelBox = { left: number; top: number; width: number; height: number };
 const overlaps = (a: LabelBox, b: LabelBox) =>
   a.left < b.left + b.width && a.left + a.width > b.left && a.top < b.top + b.height && a.top + a.height > b.top;
 
-const labelCandidates = (point: Point): LabelBox[] => [
+const labelCandidates = (point: Point, width: number, height: number): LabelBox[] => [
   { left: point.x + 12, top: point.y - 25, width: 116, height: 24 },
   { left: point.x - 128, top: point.y - 25, width: 116, height: 24 },
   { left: point.x + 12, top: point.y + 11, width: 116, height: 24 },
   { left: point.x - 128, top: point.y + 11, width: 116, height: 24 },
 ].map((box) => ({
   ...box,
-  left: Math.min(WIDTH - box.width - 8, Math.max(8, box.left)),
-  top: Math.min(HEIGHT - box.height - 8, Math.max(4, box.top)),
+  left: Math.min(width - box.width - 8, Math.max(8, box.left)),
+  top: Math.min(height - box.height - 8, Math.max(4, box.top)),
 }));
 
 const shortName = (name: string) => name.length > 22 ? `${name.slice(0, 20).trim()}…` : name;
@@ -50,7 +52,11 @@ const shortName = (name: string) => name.length > 22 ? `${name.slice(0, 20).trim
  * generation remains private, deterministic, fast, and free from map-token or
  * tile-attribution concerns. Coordinates retain their north-up geography.
  */
-export const BrochureOverviewMap = ({ map }: { map: OverviewMap }) => {
+export const BrochureOverviewMap = ({ map, compact = false }: { map: OverviewMap; compact?: boolean }) => {
+  const width = compact ? COMPACT_WIDTH : WIDTH;
+  const height = compact ? COMPACT_HEIGHT : HEIGHT;
+  const padX = compact ? 52 : PAD_X;
+  const padY = compact ? 28 : PAD_Y;
   const all = [...map.stops.map((stop) => [stop.lat, stop.lng] as const), ...map.routes.flatMap((route) => route.coordinates)];
   const minLat = Math.min(...all.map(([lat]) => lat));
   const maxLat = Math.max(...all.map(([lat]) => lat));
@@ -61,13 +67,13 @@ export const BrochureOverviewMap = ({ map }: { map: OverviewMap }) => {
   const lngScale = Math.max(0.15, Math.cos((midLat * Math.PI) / 180));
   const spanX = Math.max(0.0001, (maxLng - minLng) * lngScale);
   const spanY = Math.max(0.0001, maxLat - minLat);
-  const usableWidth = WIDTH - PAD_X * 2;
-  const usableHeight = HEIGHT - PAD_Y * 2;
+  const usableWidth = width - padX * 2;
+  const usableHeight = height - padY * 2;
   const scale = Math.min(usableWidth / spanX, usableHeight / spanY);
   const contentWidth = spanX * scale;
   const contentHeight = spanY * scale;
-  const offsetX = (WIDTH - contentWidth) / 2;
-  const offsetY = (HEIGHT - contentHeight) / 2;
+  const offsetX = (width - contentWidth) / 2;
+  const offsetY = (height - contentHeight) / 2;
   const project = ([lat, lng]: [number, number]): Point => ({
     x: offsetX + (lng - minLng) * lngScale * scale,
     y: offsetY + (maxLat - lat) * scale,
@@ -88,11 +94,11 @@ export const BrochureOverviewMap = ({ map }: { map: OverviewMap }) => {
     const right = [to.x - size * Math.cos(angle + 0.55), to.y - size * Math.sin(angle + 0.55)];
     return `M${left[0]} ${left[1]} L${to.x} ${to.y} L${right[0]} ${right[1]}`;
   };
-  const displayedStops = keyStops(map.stops);
+  const displayedStops = keyStops(map.stops, compact ? 4 : MAX_KEY_STOPS);
   const occupied: LabelBox[] = [];
   const labels = displayedStops.flatMap((stop) => {
     const position = project([stop.lat, stop.lng]);
-    const box = labelCandidates(position).find((candidate) => !occupied.some((used) => overlaps(candidate, used)));
+    const box = labelCandidates(position, width, height).find((candidate) => !occupied.some((used) => overlaps(candidate, used)));
     if (!box) return [];
     occupied.push(box);
     const endpoint = stop.sequence === 1 ? "START · " : stop.sequence === map.stops.length ? "END · " : "";
@@ -100,12 +106,12 @@ export const BrochureOverviewMap = ({ map }: { map: OverviewMap }) => {
   });
 
   return (
-    <View style={{ width: WIDTH, height: HEIGHT, position: "relative", borderRadius: 10, overflow: "hidden", borderWidth: 1, borderColor: C.stroke, backgroundColor: "#F7FAFC" }}>
-      <Svg viewBox={`0 0 ${WIDTH} ${HEIGHT}`} style={{ width: WIDTH, height: HEIGHT }}>
-        <Rect x={0} y={0} width={WIDTH} height={HEIGHT} fill="#F7FAFC" />
+    <View style={{ width, height, position: "relative", borderRadius: 8, overflow: "hidden", borderWidth: 1, borderColor: C.stroke, backgroundColor: "#F7FAFC" }}>
+      <Svg viewBox={`0 0 ${width} ${height}`} style={{ width, height }}>
+        <Rect x={0} y={0} width={width} height={height} fill="#F7FAFC" />
         {/* Subtle contour-like lines give a print-map feeling without claiming terrain accuracy. */}
-        {[48, 108, 176, 242, 306].map((y, index) => (
-          <Path key={y} d={`M0 ${y} C140 ${y - 25 + index * 4}, 330 ${y + 30}, ${WIDTH} ${y - 10}`} stroke="#DDE8E3" strokeWidth={1} fill="none" />
+        {(compact ? [38, 92, 148] : [48, 108, 176, 242, 306]).map((y, index) => (
+          <Path key={y} d={`M0 ${y} C${width * 0.2} ${y - 18 + index * 4}, ${width * 0.5} ${y + 24}, ${width} ${y - 8}`} stroke="#DDE8E3" strokeWidth={1} fill="none" />
         ))}
         {map.routes.map((route, index) => {
           const style = routeStyle(route.mode);
@@ -129,18 +135,18 @@ export const BrochureOverviewMap = ({ map }: { map: OverviewMap }) => {
             </React.Fragment>
           );
         })}
-        <Path d="M31 44 L39 20 L47 44 L39 38 Z" fill={C.violet} />
-        <Text x={35} y={58} style={{ fontSize: 10, fontWeight: 700, color: C.violet }}>N</Text>
+        <Path d={`M${compact ? 22 : 31} ${compact ? 30 : 44} L${compact ? 28 : 39} ${compact ? 12 : 20} L${compact ? 34 : 47} ${compact ? 30 : 44} L${compact ? 28 : 39} ${compact ? 25 : 38} Z`} fill={C.violet} />
+        <Text x={compact ? 25 : 35} y={compact ? 42 : 58} style={{ fontSize: compact ? 8 : 10, fontWeight: 700, color: C.violet }}>N</Text>
       </Svg>
 
       {labels.map(({ stop, box, text }) => {
         return <Text key={`${stop.name}-${stop.sequence}-label`} style={{ position: "absolute", width: box.width, left: box.left, top: box.top, fontSize: 9, lineHeight: 1.15, fontWeight: 600, color: C.text }}>{text}</Text>;
       })}
 
-      <View style={{ position: "absolute", right: 14, bottom: 12, flexDirection: "row", gap: 10, paddingHorizontal: 9, paddingVertical: 6, borderRadius: 5, backgroundColor: "rgba(255,255,255,0.92)" }}>
+      <View style={{ position: "absolute", right: 10, bottom: 8, flexDirection: "row", gap: compact ? 5 : 10, paddingHorizontal: 7, paddingVertical: 4, borderRadius: 5, backgroundColor: "rgba(255,255,255,0.92)" }}>
         {["driving", "walking", "air"].filter((mode) => map.routes.some((route) => route.mode === mode)).map((mode) => {
           const style = routeStyle(mode as BrochureMapRoute["mode"]);
-          return <View key={mode} style={{ flexDirection: "row", gap: 4, alignItems: "center" }}><View style={{ width: 10, height: 3, backgroundColor: style.color }} /><Text style={{ fontSize: 8, color: C.text }}>{style.label}</Text></View>;
+          return <View key={mode} style={{ flexDirection: "row", gap: 3, alignItems: "center" }}><View style={{ width: 8, height: 2, backgroundColor: style.color }} /><Text style={{ fontSize: compact ? 6 : 8, color: C.text }}>{style.label}</Text></View>;
         })}
       </View>
       {map.stops.length > displayedStops.length && (
