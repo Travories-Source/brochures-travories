@@ -201,6 +201,7 @@ export const styles = StyleSheet.create({
   dayColumns: { flexDirection: "row", gap: DAY_COLUMN_GAP },
   dayColumn: { width: DAY_COLUMN_WIDTH, gap: 20 },
   dayBlock: { gap: 16 },
+  dayRouteMap: { gap: 10, marginTop: 4 },
   dayBlockLabel: { fontSize: 18, fontWeight: 500, color: C.primary, letterSpacing: -0.72 },
   dayCopy: { fontSize: 16, lineHeight: 1.5, color: C.text, letterSpacing: -0.32 },
   dayMetaRow: { flexDirection: "row", alignItems: "center", gap: 8 },

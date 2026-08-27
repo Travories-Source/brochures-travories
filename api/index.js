@@ -194075,6 +194075,204 @@ var index = {
 // src/vercel.ts
 var import_react6 = __toESM(require_react(), 1);
 
+// src/brochure/BrochureOverviewMap.tsx
+var import_react5 = __toESM(require_react(), 1);
+
+// src/brochure/theme.ts
+var BROCHURE_PAGE = {
+  /** Figma frame width. The PDF page is emitted at exactly this width. */
+  width: 1440,
+  /** Horizontal frame padding — 1440 - (78 * 2) = 1284pt content column. */
+  paddingX: 78,
+  paddingTop: 76,
+  paddingBottom: 76,
+  /** Width of the inner content column. */
+  contentWidth: 1284,
+  /**
+   * Side of the QR symbol pinned in the top-right corner. It also fixes the
+   * width of the whole QR block (the caption underneath is narrower), which is
+   * what the header title has to keep clear of.
+   */
+  qrSize: 132,
+  /** Vertical gap between top-level sections inside the content column. */
+  sectionGap: 50,
+  /** Gap between the header block, the content column and the footer. */
+  blockGap: 80
+};
+var BROCHURE_A4_PAGE_HEIGHT = BROCHURE_PAGE.width * 297 / 210;
+var BROCHURE_PAGED_PADDING_Y = 56;
+var BROCHURE_PAGED_BODY_HEIGHT = BROCHURE_A4_PAGE_HEIGHT - BROCHURE_PAGED_PADDING_Y * 2;
+var BROCHURE_COLOR = {
+  /** Section headings and day-card labels. */
+  primary: "#5b4d81",
+  /** colors/Violet/Normal — day titles, add-on names. */
+  violet: "#65558f",
+  /** colors/Violet/Dark — footer panel. */
+  violetDark: "#4c406b",
+  /** Price emphasis and the EXTRAS accent. */
+  secondary: "#7e5cd9",
+  /** Body copy. */
+  text: "#47586e",
+  /** De-emphasised copy ("includes taxes and charges"). */
+  muted: "#909dad",
+  /** Card and divider strokes. */
+  stroke: "#e0e4e8",
+  /** Tinted panel backgrounds and chips. */
+  background: "#f5f5f5",
+  white: "#ffffff",
+  /** Inclusion accents. */
+  success: "#44a33c",
+  successDeep: "#3c9136",
+  /** Exclusion accents. */
+  danger: "#c62222",
+  dangerDeep: "#841717",
+  /** Footer body copy. */
+  footerText: "#cfcadc"
+};
+var BROCHURE_FONT = {
+  sans: "PoppinsBrochure",
+  display: "BricolageGrotesqueBrochure"
+};
+var BROCHURE_CURRENCY = {
+  symbol: "$",
+  locale: "en-US"
+};
+var DIFFICULTY_FILL = {
+  easy: 0.3,
+  beginner: 0.3,
+  moderate: 0.55,
+  intermediate: 0.55,
+  hard: 0.8,
+  difficult: 0.8,
+  challenging: 0.8,
+  extreme: 1,
+  strenuous: 1
+};
+
+// src/brochure/BrochureOverviewMap.tsx
+var import_jsx_runtime = __toESM(require_jsx_runtime(), 1);
+var WIDTH = 720;
+var HEIGHT = 360;
+var COMPACT_WIDTH = 500;
+var COMPACT_HEIGHT = 210;
+var PAD_X = 76;
+var PAD_Y = 42;
+var MAX_KEY_STOPS = 7;
+var routeStyle = (mode) => {
+  if (mode === "walking") return { color: BROCHURE_COLOR.secondary, dash: "3 6", label: "Trek" };
+  if (mode === "air") return { color: BROCHURE_COLOR.violet, dash: "9 7", label: "Flight" };
+  if (mode === "driving") return { color: BROCHURE_COLOR.primary, dash: void 0, label: "Drive" };
+  return { color: BROCHURE_COLOR.muted, dash: "3 5", label: "Route" };
+};
+var keyStops = (stops, limit = MAX_KEY_STOPS) => {
+  if (stops.length <= limit) return stops;
+  const selected = /* @__PURE__ */ new Set();
+  for (let index2 = 0; index2 < limit; index2 += 1) {
+    selected.add(Math.round(index2 * (stops.length - 1) / (limit - 1)));
+  }
+  return stops.filter((_, index2) => selected.has(index2));
+};
+var overlaps = (a4, b3) => a4.left < b3.left + b3.width && a4.left + a4.width > b3.left && a4.top < b3.top + b3.height && a4.top + a4.height > b3.top;
+var labelCandidates = (point, width, height2) => [
+  { left: point.x + 12, top: point.y - 25, width: 116, height: 24 },
+  { left: point.x - 128, top: point.y - 25, width: 116, height: 24 },
+  { left: point.x + 12, top: point.y + 11, width: 116, height: 24 },
+  { left: point.x - 128, top: point.y + 11, width: 116, height: 24 }
+].map((box) => ({
+  ...box,
+  left: Math.min(width - box.width - 8, Math.max(8, box.left)),
+  top: Math.min(height2 - box.height - 8, Math.max(4, box.top))
+}));
+var shortName = (name) => name.length > 22 ? `${name.slice(0, 20).trim()}\u2026` : name;
+var BrochureOverviewMap = ({ map, compact: compact2 = false }) => {
+  const width = compact2 ? COMPACT_WIDTH : WIDTH;
+  const height2 = compact2 ? COMPACT_HEIGHT : HEIGHT;
+  const padX = compact2 ? 52 : PAD_X;
+  const padY = compact2 ? 28 : PAD_Y;
+  const all = [...map.stops.map((stop) => [stop.lat, stop.lng]), ...map.routes.flatMap((route) => route.coordinates)];
+  const minLat = Math.min(...all.map(([lat]) => lat));
+  const maxLat = Math.max(...all.map(([lat]) => lat));
+  const minLng = Math.min(...all.map(([, lng]) => lng));
+  const maxLng = Math.max(...all.map(([, lng]) => lng));
+  const midLat = (minLat + maxLat) / 2;
+  const lngScale = Math.max(0.15, Math.cos(midLat * Math.PI / 180));
+  const spanX = Math.max(1e-4, (maxLng - minLng) * lngScale);
+  const spanY = Math.max(1e-4, maxLat - minLat);
+  const usableWidth = width - padX * 2;
+  const usableHeight = height2 - padY * 2;
+  const scale2 = Math.min(usableWidth / spanX, usableHeight / spanY);
+  const contentWidth = spanX * scale2;
+  const contentHeight = spanY * scale2;
+  const offsetX = (width - contentWidth) / 2;
+  const offsetY = (height2 - contentHeight) / 2;
+  const project = ([lat, lng]) => ({
+    x: offsetX + (lng - minLng) * lngScale * scale2,
+    y: offsetY + (maxLat - lat) * scale2
+  });
+  const routePath = (coordinates) => coordinates.map((coordinate, index2) => {
+    const point = project(coordinate);
+    return `${index2 === 0 ? "M" : "L"}${point.x.toFixed(1)} ${point.y.toFixed(1)}`;
+  }).join(" ");
+  const arrow = (coordinates) => {
+    if (coordinates.length < 2) return null;
+    const at = Math.max(1, Math.floor(coordinates.length * 0.58));
+    const from = project(coordinates[at - 1]);
+    const to = project(coordinates[Math.min(coordinates.length - 1, at)]);
+    const angle = Math.atan2(to.y - from.y, to.x - from.x);
+    const size = 7;
+    const left = [to.x - size * Math.cos(angle - 0.55), to.y - size * Math.sin(angle - 0.55)];
+    const right = [to.x - size * Math.cos(angle + 0.55), to.y - size * Math.sin(angle + 0.55)];
+    return `M${left[0]} ${left[1]} L${to.x} ${to.y} L${right[0]} ${right[1]}`;
+  };
+  const displayedStops = keyStops(map.stops, compact2 ? 4 : MAX_KEY_STOPS);
+  const occupied = [];
+  const labels = displayedStops.flatMap((stop) => {
+    const position = project([stop.lat, stop.lng]);
+    const box = labelCandidates(position, width, height2).find((candidate) => !occupied.some((used) => overlaps(candidate, used)));
+    if (!box) return [];
+    occupied.push(box);
+    const endpoint = stop.sequence === 1 ? "START \xB7 " : stop.sequence === map.stops.length ? "END \xB7 " : "";
+    return [{ stop, box, text: `${endpoint}${stop.sequence}. ${shortName(stop.name)}` }];
+  });
+  return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(View, { style: { width, height: height2, position: "relative", borderRadius: 8, overflow: "hidden", borderWidth: 1, borderColor: BROCHURE_COLOR.stroke, backgroundColor: "#F7FAFC" }, children: [
+    /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Svg, { viewBox: `0 0 ${width} ${height2}`, style: { width, height: height2 }, children: [
+      /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Rect, { x: 0, y: 0, width, height: height2, fill: "#F7FAFC" }),
+      (compact2 ? [38, 92, 148] : [48, 108, 176, 242, 306]).map((y3, index2) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Path, { d: `M0 ${y3} C${width * 0.2} ${y3 - 18 + index2 * 4}, ${width * 0.5} ${y3 + 24}, ${width} ${y3 - 8}`, stroke: "#DDE8E3", strokeWidth: 1, fill: "none" }, y3)),
+      map.routes.map((route, index2) => {
+        const style = routeStyle(route.mode);
+        return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(import_react5.default.Fragment, { children: [
+          /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Path, { d: routePath(route.coordinates), stroke: "#FFFFFF", strokeWidth: 7, fill: "none", strokeLinecap: "round", strokeLinejoin: "round" }),
+          /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Path, { d: routePath(route.coordinates), stroke: style.color, strokeWidth: 3, fill: "none", strokeLinecap: "round", strokeLinejoin: "round", strokeDasharray: style.dash }),
+          arrow(route.coordinates) && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Path, { d: arrow(route.coordinates), stroke: style.color, strokeWidth: 2.5, fill: "none", strokeLinecap: "round", strokeLinejoin: "round" })
+        ] }, index2);
+      }),
+      displayedStops.map((stop) => {
+        const point = project([stop.lat, stop.lng]);
+        const first2 = stop.sequence === 1;
+        const last3 = stop.sequence === map.stops.length;
+        const color = first2 ? BROCHURE_COLOR.successDeep : last3 ? BROCHURE_COLOR.violet : BROCHURE_COLOR.primary;
+        return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(import_react5.default.Fragment, { children: [
+          /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Rect, { x: point.x - 9, y: point.y - 9, width: 18, height: 18, rx: 9, ry: 9, fill: BROCHURE_COLOR.white, stroke: color, strokeWidth: 2.5 }),
+          /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Rect, { x: point.x - 4.5, y: point.y - 4.5, width: 9, height: 9, rx: 4.5, ry: 4.5, fill: color })
+        ] }, `${stop.name}-${stop.sequence}`);
+      }),
+      /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Path, { d: `M${compact2 ? 22 : 31} ${compact2 ? 30 : 44} L${compact2 ? 28 : 39} ${compact2 ? 12 : 20} L${compact2 ? 34 : 47} ${compact2 ? 30 : 44} L${compact2 ? 28 : 39} ${compact2 ? 25 : 38} Z`, fill: BROCHURE_COLOR.violet }),
+      /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Text, { x: compact2 ? 25 : 35, y: compact2 ? 42 : 58, style: { fontSize: compact2 ? 8 : 10, fontWeight: 700, color: BROCHURE_COLOR.violet }, children: "N" })
+    ] }),
+    labels.map(({ stop, box, text }) => {
+      return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Text, { style: { position: "absolute", width: box.width, left: box.left, top: box.top, fontSize: 9, lineHeight: 1.15, fontWeight: 600, color: BROCHURE_COLOR.text }, children: text }, `${stop.name}-${stop.sequence}-label`);
+    }),
+    /* @__PURE__ */ (0, import_jsx_runtime.jsx)(View, { style: { position: "absolute", right: 10, bottom: 8, flexDirection: "row", gap: compact2 ? 5 : 10, paddingHorizontal: 7, paddingVertical: 4, borderRadius: 5, backgroundColor: "rgba(255,255,255,0.92)" }, children: ["driving", "walking", "air"].filter((mode) => map.routes.some((route) => route.mode === mode)).map((mode) => {
+      const style = routeStyle(mode);
+      return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(View, { style: { flexDirection: "row", gap: 3, alignItems: "center" }, children: [
+        /* @__PURE__ */ (0, import_jsx_runtime.jsx)(View, { style: { width: 8, height: 2, backgroundColor: style.color } }),
+        /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Text, { style: { fontSize: compact2 ? 6 : 8, color: BROCHURE_COLOR.text }, children: style.label })
+      ] }, mode);
+    }) }),
+    map.stops.length > displayedStops.length && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Text, { style: { position: "absolute", left: 14, bottom: 14, fontSize: 8, color: BROCHURE_COLOR.muted }, children: `${displayedStops.length} key stops shown of ${map.stops.length}` })
+  ] });
+};
+
 // src/brochure/iconPaths.ts
 var BROCHURE_ICONS = {
   suitcase: {
@@ -194156,198 +194354,6 @@ var BROCHURE_ICONS = {
       { d: "M2 22h20M3.77 10.77L2 9l2-4.5l1.1.55c.55.28.9.84.9 1.45s.35 1.17.9 1.45L8 8.5l3-6l1.05.53a2 2 0 0 1 1.09 1.52l.72 5.4a2 2 0 0 0 1.09 1.52l4.4 2.2c.42.22.78.55 1.01.96l.6 1.03c.49.88-.06 1.98-1.06 2.1l-1.18.15c-.47.06-.95-.02-1.37-.24L4.29 11.15a2 2 0 0 1-.52-.38", stroke: "#47586E", strokeWidth: 2, strokeLinecap: "round", strokeLinejoin: "round" }
     ]
   }
-};
-
-// src/brochure/BrochureOverviewMap.tsx
-var import_react5 = __toESM(require_react(), 1);
-
-// src/brochure/theme.ts
-var BROCHURE_PAGE = {
-  /** Figma frame width. The PDF page is emitted at exactly this width. */
-  width: 1440,
-  /** Horizontal frame padding — 1440 - (78 * 2) = 1284pt content column. */
-  paddingX: 78,
-  paddingTop: 76,
-  paddingBottom: 76,
-  /** Width of the inner content column. */
-  contentWidth: 1284,
-  /**
-   * Side of the QR symbol pinned in the top-right corner. It also fixes the
-   * width of the whole QR block (the caption underneath is narrower), which is
-   * what the header title has to keep clear of.
-   */
-  qrSize: 132,
-  /** Vertical gap between top-level sections inside the content column. */
-  sectionGap: 50,
-  /** Gap between the header block, the content column and the footer. */
-  blockGap: 80
-};
-var BROCHURE_A4_PAGE_HEIGHT = BROCHURE_PAGE.width * 297 / 210;
-var BROCHURE_PAGED_PADDING_Y = 56;
-var BROCHURE_PAGED_BODY_HEIGHT = BROCHURE_A4_PAGE_HEIGHT - BROCHURE_PAGED_PADDING_Y * 2;
-var BROCHURE_COLOR = {
-  /** Section headings and day-card labels. */
-  primary: "#5b4d81",
-  /** colors/Violet/Normal — day titles, add-on names. */
-  violet: "#65558f",
-  /** colors/Violet/Dark — footer panel. */
-  violetDark: "#4c406b",
-  /** Price emphasis and the EXTRAS accent. */
-  secondary: "#7e5cd9",
-  /** Body copy. */
-  text: "#47586e",
-  /** De-emphasised copy ("includes taxes and charges"). */
-  muted: "#909dad",
-  /** Card and divider strokes. */
-  stroke: "#e0e4e8",
-  /** Tinted panel backgrounds and chips. */
-  background: "#f5f5f5",
-  white: "#ffffff",
-  /** Inclusion accents. */
-  success: "#44a33c",
-  successDeep: "#3c9136",
-  /** Exclusion accents. */
-  danger: "#c62222",
-  dangerDeep: "#841717",
-  /** Footer body copy. */
-  footerText: "#cfcadc"
-};
-var BROCHURE_FONT = {
-  sans: "PoppinsBrochure",
-  display: "BricolageGrotesqueBrochure"
-};
-var BROCHURE_CURRENCY = {
-  symbol: "$",
-  locale: "en-US"
-};
-var DIFFICULTY_FILL = {
-  easy: 0.3,
-  beginner: 0.3,
-  moderate: 0.55,
-  intermediate: 0.55,
-  hard: 0.8,
-  difficult: 0.8,
-  challenging: 0.8,
-  extreme: 1,
-  strenuous: 1
-};
-
-// src/brochure/BrochureOverviewMap.tsx
-var import_jsx_runtime = __toESM(require_jsx_runtime(), 1);
-var WIDTH = 720;
-var HEIGHT = 360;
-var PAD_X = 76;
-var PAD_Y = 42;
-var MAX_KEY_STOPS = 7;
-var routeStyle = (mode) => {
-  if (mode === "walking") return { color: BROCHURE_COLOR.secondary, dash: "3 6", label: "Trek" };
-  if (mode === "air") return { color: BROCHURE_COLOR.violet, dash: "9 7", label: "Flight" };
-  if (mode === "driving") return { color: BROCHURE_COLOR.primary, dash: void 0, label: "Drive" };
-  return { color: BROCHURE_COLOR.muted, dash: "3 5", label: "Route" };
-};
-var keyStops = (stops) => {
-  if (stops.length <= MAX_KEY_STOPS) return stops;
-  const selected = /* @__PURE__ */ new Set();
-  for (let index2 = 0; index2 < MAX_KEY_STOPS; index2 += 1) {
-    selected.add(Math.round(index2 * (stops.length - 1) / (MAX_KEY_STOPS - 1)));
-  }
-  return stops.filter((_, index2) => selected.has(index2));
-};
-var overlaps = (a4, b3) => a4.left < b3.left + b3.width && a4.left + a4.width > b3.left && a4.top < b3.top + b3.height && a4.top + a4.height > b3.top;
-var labelCandidates = (point) => [
-  { left: point.x + 12, top: point.y - 25, width: 116, height: 24 },
-  { left: point.x - 128, top: point.y - 25, width: 116, height: 24 },
-  { left: point.x + 12, top: point.y + 11, width: 116, height: 24 },
-  { left: point.x - 128, top: point.y + 11, width: 116, height: 24 }
-].map((box) => ({
-  ...box,
-  left: Math.min(WIDTH - box.width - 8, Math.max(8, box.left)),
-  top: Math.min(HEIGHT - box.height - 8, Math.max(4, box.top))
-}));
-var shortName = (name) => name.length > 22 ? `${name.slice(0, 20).trim()}\u2026` : name;
-var BrochureOverviewMap = ({ map }) => {
-  const all = [...map.stops.map((stop) => [stop.lat, stop.lng]), ...map.routes.flatMap((route) => route.coordinates)];
-  const minLat = Math.min(...all.map(([lat]) => lat));
-  const maxLat = Math.max(...all.map(([lat]) => lat));
-  const minLng = Math.min(...all.map(([, lng]) => lng));
-  const maxLng = Math.max(...all.map(([, lng]) => lng));
-  const midLat = (minLat + maxLat) / 2;
-  const lngScale = Math.max(0.15, Math.cos(midLat * Math.PI / 180));
-  const spanX = Math.max(1e-4, (maxLng - minLng) * lngScale);
-  const spanY = Math.max(1e-4, maxLat - minLat);
-  const usableWidth = WIDTH - PAD_X * 2;
-  const usableHeight = HEIGHT - PAD_Y * 2;
-  const scale2 = Math.min(usableWidth / spanX, usableHeight / spanY);
-  const contentWidth = spanX * scale2;
-  const contentHeight = spanY * scale2;
-  const offsetX = (WIDTH - contentWidth) / 2;
-  const offsetY = (HEIGHT - contentHeight) / 2;
-  const project = ([lat, lng]) => ({
-    x: offsetX + (lng - minLng) * lngScale * scale2,
-    y: offsetY + (maxLat - lat) * scale2
-  });
-  const routePath = (coordinates) => coordinates.map((coordinate, index2) => {
-    const point = project(coordinate);
-    return `${index2 === 0 ? "M" : "L"}${point.x.toFixed(1)} ${point.y.toFixed(1)}`;
-  }).join(" ");
-  const arrow = (coordinates) => {
-    if (coordinates.length < 2) return null;
-    const at = Math.max(1, Math.floor(coordinates.length * 0.58));
-    const from = project(coordinates[at - 1]);
-    const to = project(coordinates[Math.min(coordinates.length - 1, at)]);
-    const angle = Math.atan2(to.y - from.y, to.x - from.x);
-    const size = 7;
-    const left = [to.x - size * Math.cos(angle - 0.55), to.y - size * Math.sin(angle - 0.55)];
-    const right = [to.x - size * Math.cos(angle + 0.55), to.y - size * Math.sin(angle + 0.55)];
-    return `M${left[0]} ${left[1]} L${to.x} ${to.y} L${right[0]} ${right[1]}`;
-  };
-  const displayedStops = keyStops(map.stops);
-  const occupied = [];
-  const labels = displayedStops.flatMap((stop) => {
-    const position = project([stop.lat, stop.lng]);
-    const box = labelCandidates(position).find((candidate) => !occupied.some((used) => overlaps(candidate, used)));
-    if (!box) return [];
-    occupied.push(box);
-    const endpoint = stop.sequence === 1 ? "START \xB7 " : stop.sequence === map.stops.length ? "END \xB7 " : "";
-    return [{ stop, box, text: `${endpoint}${stop.sequence}. ${shortName(stop.name)}` }];
-  });
-  return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(View, { style: { width: WIDTH, height: HEIGHT, position: "relative", borderRadius: 10, overflow: "hidden", borderWidth: 1, borderColor: BROCHURE_COLOR.stroke, backgroundColor: "#F7FAFC" }, children: [
-    /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Svg, { viewBox: `0 0 ${WIDTH} ${HEIGHT}`, style: { width: WIDTH, height: HEIGHT }, children: [
-      /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Rect, { x: 0, y: 0, width: WIDTH, height: HEIGHT, fill: "#F7FAFC" }),
-      [48, 108, 176, 242, 306].map((y3, index2) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Path, { d: `M0 ${y3} C140 ${y3 - 25 + index2 * 4}, 330 ${y3 + 30}, ${WIDTH} ${y3 - 10}`, stroke: "#DDE8E3", strokeWidth: 1, fill: "none" }, y3)),
-      map.routes.map((route, index2) => {
-        const style = routeStyle(route.mode);
-        return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(import_react5.default.Fragment, { children: [
-          /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Path, { d: routePath(route.coordinates), stroke: "#FFFFFF", strokeWidth: 7, fill: "none", strokeLinecap: "round", strokeLinejoin: "round" }),
-          /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Path, { d: routePath(route.coordinates), stroke: style.color, strokeWidth: 3, fill: "none", strokeLinecap: "round", strokeLinejoin: "round", strokeDasharray: style.dash }),
-          arrow(route.coordinates) && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Path, { d: arrow(route.coordinates), stroke: style.color, strokeWidth: 2.5, fill: "none", strokeLinecap: "round", strokeLinejoin: "round" })
-        ] }, index2);
-      }),
-      displayedStops.map((stop) => {
-        const point = project([stop.lat, stop.lng]);
-        const first2 = stop.sequence === 1;
-        const last3 = stop.sequence === map.stops.length;
-        const color = first2 ? BROCHURE_COLOR.successDeep : last3 ? BROCHURE_COLOR.violet : BROCHURE_COLOR.primary;
-        return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(import_react5.default.Fragment, { children: [
-          /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Rect, { x: point.x - 9, y: point.y - 9, width: 18, height: 18, rx: 9, ry: 9, fill: BROCHURE_COLOR.white, stroke: color, strokeWidth: 2.5 }),
-          /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Rect, { x: point.x - 4.5, y: point.y - 4.5, width: 9, height: 9, rx: 4.5, ry: 4.5, fill: color })
-        ] }, `${stop.name}-${stop.sequence}`);
-      }),
-      /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Path, { d: "M31 44 L39 20 L47 44 L39 38 Z", fill: BROCHURE_COLOR.violet }),
-      /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Text, { x: 35, y: 58, style: { fontSize: 10, fontWeight: 700, color: BROCHURE_COLOR.violet }, children: "N" })
-    ] }),
-    labels.map(({ stop, box, text }) => {
-      return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Text, { style: { position: "absolute", width: box.width, left: box.left, top: box.top, fontSize: 9, lineHeight: 1.15, fontWeight: 600, color: BROCHURE_COLOR.text }, children: text }, `${stop.name}-${stop.sequence}-label`);
-    }),
-    /* @__PURE__ */ (0, import_jsx_runtime.jsx)(View, { style: { position: "absolute", right: 14, bottom: 12, flexDirection: "row", gap: 10, paddingHorizontal: 9, paddingVertical: 6, borderRadius: 5, backgroundColor: "rgba(255,255,255,0.92)" }, children: ["driving", "walking", "air"].filter((mode) => map.routes.some((route) => route.mode === mode)).map((mode) => {
-      const style = routeStyle(mode);
-      return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(View, { style: { flexDirection: "row", gap: 4, alignItems: "center" }, children: [
-        /* @__PURE__ */ (0, import_jsx_runtime.jsx)(View, { style: { width: 10, height: 3, backgroundColor: style.color } }),
-        /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Text, { style: { fontSize: 8, color: BROCHURE_COLOR.text }, children: style.label })
-      ] }, mode);
-    }) }),
-    map.stops.length > displayedStops.length && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Text, { style: { position: "absolute", left: 14, bottom: 14, fontSize: 8, color: BROCHURE_COLOR.muted }, children: `${displayedStops.length} key stops shown of ${map.stops.length}` })
-  ] });
 };
 
 // src/brochure/styles.ts
@@ -194522,6 +194528,7 @@ var styles = StyleSheet.create({
   dayColumns: { flexDirection: "row", gap: DAY_COLUMN_GAP },
   dayColumn: { width: DAY_COLUMN_WIDTH, gap: 20 },
   dayBlock: { gap: 16 },
+  dayRouteMap: { gap: 10, marginTop: 4 },
   dayBlockLabel: { fontSize: 18, fontWeight: 500, color: BROCHURE_COLOR.primary, letterSpacing: -0.72 },
   dayCopy: { fontSize: 16, lineHeight: 1.5, color: BROCHURE_COLOR.text, letterSpacing: -0.32 },
   dayMetaRow: { flexDirection: "row", alignItems: "center", gap: 8 },
@@ -194921,13 +194928,6 @@ var KeyFacts = ({ model, images, paged }) => {
     /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(Picture, { src: model.featureImage, style: styles.keyFactsImage, images })
   ] });
 };
-var TripRouteMap = ({ model, paged }) => {
-  if (!model.overviewMap) return null;
-  return /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)(Section, { heading: "Trip Route Overview", paged, solid: true, children: [
-    /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(View, { style: styles.overviewMapWrap, children: /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(BrochureOverviewMap, { map: model.overviewMap }) }),
-    /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(Text, { style: styles.overviewMapCaption, children: "Start, finish and key checkpoints are generated automatically from this package itinerary." })
-  ] });
-};
 var DayCard = ({
   day,
   paged,
@@ -194984,6 +194984,10 @@ var DayCard = ({
           ] }),
           /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(View, { style: styles.stopLabelBox, children: /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(Text, { style: styles.stopLabel, children: stop }) })
         ] }, `${stop}-${index2}`)) })
+      ] }),
+      day.routeMap && /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)(View, { style: styles.dayRouteMap, children: [
+        /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(Text, { style: styles.dayBlockLabel, children: "Route" }),
+        /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(BrochureOverviewMap, { map: day.routeMap, compact: true })
       ] }),
       day.activities.length > 0 && /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(View, { style: styles.chipRow, children: day.activities.map((activity, index2) => /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(View, { style: styles.chip, children: /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(Text, { style: styles.chipText, children: activity }) }, `${activity}-${index2}`)) })
     ] })
@@ -195131,7 +195135,6 @@ function PackageBrochureDocument({ model, images, height: height2, qr, packageUr
           /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(Gallery, { ...shared, paged }),
           model.overview.length > 0 && /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(Section, { heading: "Overview", paged, solid: true, children: /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(View, { style: { gap: 10 }, children: model.overview.map((paragraph, index2) => /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(Text, { style: styles.overviewCopy, children: paragraph }, index2)) }) }),
           /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(KeyFacts, { ...shared, paged }),
-          /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(TripRouteMap, { model, paged }),
           /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)(Section, { heading: "Pricing", paged, solid: true, children: [
             /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(View, { style: styles.priceRow, wrap: !paged, children: pricingCards.map((card, index2) => /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)(View, { style: styles.priceCard, children: [
               /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(Text, { style: styles.priceCardLabel, children: card.label }),
@@ -195397,7 +195400,8 @@ var toDay = (day, position) => {
     difficulty: difficultyLabel(flat.difficulty),
     difficultyFill: difficultyFill(flat.difficulty),
     stops,
-    activities: activityNames
+    activities: activityNames,
+    routeMap: buildOverviewMap([day])
   };
 };
 var validCoordinate = (value2) => Array.isArray(value2) && value2.length >= 2 && Number.isFinite(Number(value2[0])) && Number.isFinite(Number(value2[1])) && Math.abs(Number(value2[0])) <= 90 && Math.abs(Number(value2[1])) <= 180;
@@ -195600,6 +195604,7 @@ var toDataUrl = async (url2) => {
 };
 var render3 = async (body) => {
   const model = buildBrochureModel(body.package, body.party);
+  if (body.includeRouteMaps === false) model.days = model.days.map((day) => ({ ...day, routeMap: null }));
   const entries = await Promise.all(model.imageUrls.map(async (url2) => {
     const data = await toDataUrl(url2);
     return data ? [url2, data] : null;
