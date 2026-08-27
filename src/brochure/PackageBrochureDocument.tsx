@@ -402,7 +402,7 @@ const TripRouteMap = ({ model, paged }: Pick<DocProps, "model" | "paged">) => {
         <BrochureOverviewMap map={model.overviewMap} />
       </View>
       <Text style={styles.overviewMapCaption}>
-        Route direction and stops are generated automatically from this package itinerary.
+        Start, finish and key checkpoints are generated automatically from this package itinerary.
       </Text>
     </Section>
   );
