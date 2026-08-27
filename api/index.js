@@ -135983,18 +135983,18 @@ var require_react_jsx_runtime_development = __commonJS({
       function isValidElement(object) {
         return "object" === typeof object && null !== object && object.$$typeof === REACT_ELEMENT_TYPE;
       }
-      var React4 = require_react(), REACT_ELEMENT_TYPE = /* @__PURE__ */ Symbol.for("react.transitional.element"), REACT_PORTAL_TYPE = /* @__PURE__ */ Symbol.for("react.portal"), REACT_FRAGMENT_TYPE = /* @__PURE__ */ Symbol.for("react.fragment"), REACT_STRICT_MODE_TYPE = /* @__PURE__ */ Symbol.for("react.strict_mode"), REACT_PROFILER_TYPE = /* @__PURE__ */ Symbol.for("react.profiler"), REACT_CONSUMER_TYPE = /* @__PURE__ */ Symbol.for("react.consumer"), REACT_CONTEXT_TYPE = /* @__PURE__ */ Symbol.for("react.context"), REACT_FORWARD_REF_TYPE = /* @__PURE__ */ Symbol.for("react.forward_ref"), REACT_SUSPENSE_TYPE = /* @__PURE__ */ Symbol.for("react.suspense"), REACT_SUSPENSE_LIST_TYPE = /* @__PURE__ */ Symbol.for("react.suspense_list"), REACT_MEMO_TYPE = /* @__PURE__ */ Symbol.for("react.memo"), REACT_LAZY_TYPE = /* @__PURE__ */ Symbol.for("react.lazy"), REACT_ACTIVITY_TYPE = /* @__PURE__ */ Symbol.for("react.activity"), REACT_CLIENT_REFERENCE = /* @__PURE__ */ Symbol.for("react.client.reference"), ReactSharedInternals = React4.__CLIENT_INTERNALS_DO_NOT_USE_OR_WARN_USERS_THEY_CANNOT_UPGRADE, hasOwnProperty = Object.prototype.hasOwnProperty, isArrayImpl = Array.isArray, createTask = console.createTask ? console.createTask : function() {
+      var React3 = require_react(), REACT_ELEMENT_TYPE = /* @__PURE__ */ Symbol.for("react.transitional.element"), REACT_PORTAL_TYPE = /* @__PURE__ */ Symbol.for("react.portal"), REACT_FRAGMENT_TYPE = /* @__PURE__ */ Symbol.for("react.fragment"), REACT_STRICT_MODE_TYPE = /* @__PURE__ */ Symbol.for("react.strict_mode"), REACT_PROFILER_TYPE = /* @__PURE__ */ Symbol.for("react.profiler"), REACT_CONSUMER_TYPE = /* @__PURE__ */ Symbol.for("react.consumer"), REACT_CONTEXT_TYPE = /* @__PURE__ */ Symbol.for("react.context"), REACT_FORWARD_REF_TYPE = /* @__PURE__ */ Symbol.for("react.forward_ref"), REACT_SUSPENSE_TYPE = /* @__PURE__ */ Symbol.for("react.suspense"), REACT_SUSPENSE_LIST_TYPE = /* @__PURE__ */ Symbol.for("react.suspense_list"), REACT_MEMO_TYPE = /* @__PURE__ */ Symbol.for("react.memo"), REACT_LAZY_TYPE = /* @__PURE__ */ Symbol.for("react.lazy"), REACT_ACTIVITY_TYPE = /* @__PURE__ */ Symbol.for("react.activity"), REACT_CLIENT_REFERENCE = /* @__PURE__ */ Symbol.for("react.client.reference"), ReactSharedInternals = React3.__CLIENT_INTERNALS_DO_NOT_USE_OR_WARN_USERS_THEY_CANNOT_UPGRADE, hasOwnProperty = Object.prototype.hasOwnProperty, isArrayImpl = Array.isArray, createTask = console.createTask ? console.createTask : function() {
         return null;
       };
-      React4 = {
+      React3 = {
         react_stack_bottom_frame: function(callStackForError) {
           return callStackForError();
         }
       };
       var specialPropKeyWarningShown;
       var didWarnAboutElementRef = {};
-      var unknownOwnerDebugStack = React4.react_stack_bottom_frame.bind(
-        React4,
+      var unknownOwnerDebugStack = React3.react_stack_bottom_frame.bind(
+        React3,
         UnknownOwner
       )();
       var unknownOwnerDebugTask = createTask(getTaskName(UnknownOwner));
@@ -194073,7 +194073,7 @@ var index = {
 };
 
 // src/vercel.ts
-var import_react6 = __toESM(require_react(), 1);
+var import_react5 = __toESM(require_react(), 1);
 
 // src/brochure/iconPaths.ts
 var BROCHURE_ICONS = {
@@ -194158,9 +194158,6 @@ var BROCHURE_ICONS = {
   }
 };
 
-// src/brochure/BrochureOverviewMap.tsx
-var import_react5 = __toESM(require_react(), 1);
-
 // src/brochure/theme.ts
 var BROCHURE_PAGE = {
   /** Figma frame width. The PDF page is emitted at exactly this width. */
@@ -194230,124 +194227,6 @@ var DIFFICULTY_FILL = {
   challenging: 0.8,
   extreme: 1,
   strenuous: 1
-};
-
-// src/brochure/BrochureOverviewMap.tsx
-var import_jsx_runtime = __toESM(require_jsx_runtime(), 1);
-var WIDTH = 720;
-var HEIGHT = 360;
-var PAD_X = 76;
-var PAD_Y = 42;
-var MAX_KEY_STOPS = 7;
-var routeStyle = (mode) => {
-  if (mode === "walking") return { color: BROCHURE_COLOR.secondary, dash: "3 6", label: "Trek" };
-  if (mode === "air") return { color: BROCHURE_COLOR.violet, dash: "9 7", label: "Flight" };
-  if (mode === "driving") return { color: BROCHURE_COLOR.primary, dash: void 0, label: "Drive" };
-  return { color: BROCHURE_COLOR.muted, dash: "3 5", label: "Route" };
-};
-var keyStops = (stops) => {
-  if (stops.length <= MAX_KEY_STOPS) return stops;
-  const selected = /* @__PURE__ */ new Set();
-  for (let index2 = 0; index2 < MAX_KEY_STOPS; index2 += 1) {
-    selected.add(Math.round(index2 * (stops.length - 1) / (MAX_KEY_STOPS - 1)));
-  }
-  return stops.filter((_, index2) => selected.has(index2));
-};
-var overlaps = (a4, b3) => a4.left < b3.left + b3.width && a4.left + a4.width > b3.left && a4.top < b3.top + b3.height && a4.top + a4.height > b3.top;
-var labelCandidates = (point) => [
-  { left: point.x + 12, top: point.y - 25, width: 116, height: 24 },
-  { left: point.x - 128, top: point.y - 25, width: 116, height: 24 },
-  { left: point.x + 12, top: point.y + 11, width: 116, height: 24 },
-  { left: point.x - 128, top: point.y + 11, width: 116, height: 24 }
-].map((box) => ({
-  ...box,
-  left: Math.min(WIDTH - box.width - 8, Math.max(8, box.left)),
-  top: Math.min(HEIGHT - box.height - 8, Math.max(4, box.top))
-}));
-var shortName = (name) => name.length > 22 ? `${name.slice(0, 20).trim()}\u2026` : name;
-var BrochureOverviewMap = ({ map }) => {
-  const all = [...map.stops.map((stop) => [stop.lat, stop.lng]), ...map.routes.flatMap((route) => route.coordinates)];
-  const minLat = Math.min(...all.map(([lat]) => lat));
-  const maxLat = Math.max(...all.map(([lat]) => lat));
-  const minLng = Math.min(...all.map(([, lng]) => lng));
-  const maxLng = Math.max(...all.map(([, lng]) => lng));
-  const midLat = (minLat + maxLat) / 2;
-  const lngScale = Math.max(0.15, Math.cos(midLat * Math.PI / 180));
-  const spanX = Math.max(1e-4, (maxLng - minLng) * lngScale);
-  const spanY = Math.max(1e-4, maxLat - minLat);
-  const usableWidth = WIDTH - PAD_X * 2;
-  const usableHeight = HEIGHT - PAD_Y * 2;
-  const scale2 = Math.min(usableWidth / spanX, usableHeight / spanY);
-  const contentWidth = spanX * scale2;
-  const contentHeight = spanY * scale2;
-  const offsetX = (WIDTH - contentWidth) / 2;
-  const offsetY = (HEIGHT - contentHeight) / 2;
-  const project = ([lat, lng]) => ({
-    x: offsetX + (lng - minLng) * lngScale * scale2,
-    y: offsetY + (maxLat - lat) * scale2
-  });
-  const routePath = (coordinates) => coordinates.map((coordinate, index2) => {
-    const point = project(coordinate);
-    return `${index2 === 0 ? "M" : "L"}${point.x.toFixed(1)} ${point.y.toFixed(1)}`;
-  }).join(" ");
-  const arrow = (coordinates) => {
-    if (coordinates.length < 2) return null;
-    const at = Math.max(1, Math.floor(coordinates.length * 0.58));
-    const from = project(coordinates[at - 1]);
-    const to = project(coordinates[Math.min(coordinates.length - 1, at)]);
-    const angle = Math.atan2(to.y - from.y, to.x - from.x);
-    const size = 7;
-    const left = [to.x - size * Math.cos(angle - 0.55), to.y - size * Math.sin(angle - 0.55)];
-    const right = [to.x - size * Math.cos(angle + 0.55), to.y - size * Math.sin(angle + 0.55)];
-    return `M${left[0]} ${left[1]} L${to.x} ${to.y} L${right[0]} ${right[1]}`;
-  };
-  const displayedStops = keyStops(map.stops);
-  const occupied = [];
-  const labels = displayedStops.flatMap((stop) => {
-    const position = project([stop.lat, stop.lng]);
-    const box = labelCandidates(position).find((candidate) => !occupied.some((used) => overlaps(candidate, used)));
-    if (!box) return [];
-    occupied.push(box);
-    const endpoint = stop.sequence === 1 ? "START \xB7 " : stop.sequence === map.stops.length ? "END \xB7 " : "";
-    return [{ stop, box, text: `${endpoint}${stop.sequence}. ${shortName(stop.name)}` }];
-  });
-  return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(View, { style: { width: WIDTH, height: HEIGHT, position: "relative", borderRadius: 10, overflow: "hidden", borderWidth: 1, borderColor: BROCHURE_COLOR.stroke, backgroundColor: "#F7FAFC" }, children: [
-    /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Svg, { viewBox: `0 0 ${WIDTH} ${HEIGHT}`, style: { width: WIDTH, height: HEIGHT }, children: [
-      /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Rect, { x: 0, y: 0, width: WIDTH, height: HEIGHT, fill: "#F7FAFC" }),
-      [48, 108, 176, 242, 306].map((y3, index2) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Path, { d: `M0 ${y3} C140 ${y3 - 25 + index2 * 4}, 330 ${y3 + 30}, ${WIDTH} ${y3 - 10}`, stroke: "#DDE8E3", strokeWidth: 1, fill: "none" }, y3)),
-      map.routes.map((route, index2) => {
-        const style = routeStyle(route.mode);
-        return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(import_react5.default.Fragment, { children: [
-          /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Path, { d: routePath(route.coordinates), stroke: "#FFFFFF", strokeWidth: 7, fill: "none", strokeLinecap: "round", strokeLinejoin: "round" }),
-          /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Path, { d: routePath(route.coordinates), stroke: style.color, strokeWidth: 3, fill: "none", strokeLinecap: "round", strokeLinejoin: "round", strokeDasharray: style.dash }),
-          arrow(route.coordinates) && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Path, { d: arrow(route.coordinates), stroke: style.color, strokeWidth: 2.5, fill: "none", strokeLinecap: "round", strokeLinejoin: "round" })
-        ] }, index2);
-      }),
-      displayedStops.map((stop) => {
-        const point = project([stop.lat, stop.lng]);
-        const first2 = stop.sequence === 1;
-        const last3 = stop.sequence === map.stops.length;
-        const color = first2 ? BROCHURE_COLOR.successDeep : last3 ? BROCHURE_COLOR.violet : BROCHURE_COLOR.primary;
-        return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(import_react5.default.Fragment, { children: [
-          /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Rect, { x: point.x - 9, y: point.y - 9, width: 18, height: 18, rx: 9, ry: 9, fill: BROCHURE_COLOR.white, stroke: color, strokeWidth: 2.5 }),
-          /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Rect, { x: point.x - 4.5, y: point.y - 4.5, width: 9, height: 9, rx: 4.5, ry: 4.5, fill: color })
-        ] }, `${stop.name}-${stop.sequence}`);
-      }),
-      /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Path, { d: "M31 44 L39 20 L47 44 L39 38 Z", fill: BROCHURE_COLOR.violet }),
-      /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Text, { x: 35, y: 58, style: { fontSize: 10, fontWeight: 700, color: BROCHURE_COLOR.violet }, children: "N" })
-    ] }),
-    labels.map(({ stop, box, text }) => {
-      return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Text, { style: { position: "absolute", width: box.width, left: box.left, top: box.top, fontSize: 9, lineHeight: 1.15, fontWeight: 600, color: BROCHURE_COLOR.text }, children: text }, `${stop.name}-${stop.sequence}-label`);
-    }),
-    /* @__PURE__ */ (0, import_jsx_runtime.jsx)(View, { style: { position: "absolute", right: 14, bottom: 12, flexDirection: "row", gap: 10, paddingHorizontal: 9, paddingVertical: 6, borderRadius: 5, backgroundColor: "rgba(255,255,255,0.92)" }, children: ["driving", "walking", "air"].filter((mode) => map.routes.some((route) => route.mode === mode)).map((mode) => {
-      const style = routeStyle(mode);
-      return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(View, { style: { flexDirection: "row", gap: 4, alignItems: "center" }, children: [
-        /* @__PURE__ */ (0, import_jsx_runtime.jsx)(View, { style: { width: 10, height: 3, backgroundColor: style.color } }),
-        /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Text, { style: { fontSize: 8, color: BROCHURE_COLOR.text }, children: style.label })
-      ] }, mode);
-    }) }),
-    map.stops.length > displayedStops.length && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Text, { style: { position: "absolute", left: 14, bottom: 14, fontSize: 8, color: BROCHURE_COLOR.muted }, children: `${displayedStops.length} key stops shown of ${map.stops.length}` })
-  ] });
 };
 
 // src/brochure/styles.ts
@@ -194706,7 +194585,7 @@ var styles = StyleSheet.create({
 });
 
 // src/brochure/PackageBrochureDocument.tsx
-var import_jsx_runtime2 = __toESM(require_jsx_runtime(), 1);
+var import_jsx_runtime = __toESM(require_jsx_runtime(), 1);
 var LOGO_VIEWBOX = "110 560 860 160";
 var LOGO_PATHS = [
   "m243.76,680.4v20.8c-15.77,1.78-26.91.3-33.36-4.46-6.45-4.73-9.69-13.19-9.69-25.42v-2.9l22.94-17.56v20.46c0,3.11.76,5.35,2.31,6.78,1.52,1.42,3.77,2.21,6.74,2.38,2.98.2,6.65.17,11.04-.06",
@@ -194736,7 +194615,7 @@ var money = (amount) => `${BROCHURE_CURRENCY.symbol}${Number(amount || 0).toLoca
 })}`;
 var Icon = ({ name, size, color }) => {
   const icon = BROCHURE_ICONS[name];
-  return /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(Svg, { viewBox: icon.viewBox, style: { width: size, height: size }, children: icon.paths.map((path2, index2) => /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(
+  return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Svg, { viewBox: icon.viewBox, style: { width: size, height: size }, children: icon.paths.map((path2, index2) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(
     Path,
     {
       d: path2.d,
@@ -194756,8 +194635,8 @@ var Picture = ({
   images
 }) => {
   const data = src ? images[src] : void 0;
-  if (!data) return /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(View, { style: [style, { backgroundColor: BROCHURE_COLOR.stroke }] });
-  return /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(Image, { src: data, style });
+  if (!data) return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(View, { style: [style, { backgroundColor: BROCHURE_COLOR.stroke }] });
+  return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Image, { src: data, style });
 };
 var GradientText = ({
   value: value2,
@@ -194773,12 +194652,12 @@ var GradientText = ({
   const tokens = value2.split(/(\s+)/).filter(Boolean);
   const span = Math.max(1, value2.length);
   let consumed = 0;
-  return /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(Text, { style, children: tokens.map((token, index2) => {
+  return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Text, { style, children: tokens.map((token, index2) => {
     const position = (consumed + token.length / 2) / span;
     consumed += token.length;
     const t4 = Math.min(1, Math.max(0, (position - start2) / (end2 - start2)));
     const mix = (a4, b3) => Math.round(a4 + (b3 - a4) * t4);
-    return /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(Text, { style: { color: `rgb(${mix(r1, r22)}, ${mix(g1, g22)}, ${mix(b1, b22)})` }, children: token }, index2);
+    return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Text, { style: { color: `rgb(${mix(r1, r22)}, ${mix(g1, g22)}, ${mix(b1, b22)})` }, children: token }, index2);
   }) });
 };
 var EXTERNAL_LINK = {
@@ -194794,15 +194673,15 @@ var QrCode = ({ matrix, url: url2 }) => {
   const logoBox = Math.round(QR_SIZE * QR_LOGO_RATIO);
   const logoOffset = (QR_SIZE - logoBox) / 2;
   const markPad = logoBox * 0.2;
-  return /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)(Link, { src: url2, style: styles.qrBlock, children: [
-    /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)(View, { children: [
-      /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)(Svg, { viewBox: `0 0 ${QR_SIZE} ${QR_SIZE}`, style: { width: QR_SIZE, height: QR_SIZE }, children: [
-        /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(Rect, { x: 0, y: 0, width: QR_SIZE, height: QR_SIZE, fill: BROCHURE_COLOR.white }),
+  return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Link, { src: url2, style: styles.qrBlock, children: [
+    /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(View, { children: [
+      /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Svg, { viewBox: `0 0 ${QR_SIZE} ${QR_SIZE}`, style: { width: QR_SIZE, height: QR_SIZE }, children: [
+        /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Rect, { x: 0, y: 0, width: QR_SIZE, height: QR_SIZE, fill: BROCHURE_COLOR.white }),
         matrix.dark.map((isDark, index2) => {
           if (!isDark) return null;
           const row = Math.floor(index2 / matrix.size);
           const column = index2 % matrix.size;
-          return /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(
+          return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(
             Rect,
             {
               x: (column + QR_QUIET_MODULES) * module2,
@@ -194814,7 +194693,7 @@ var QrCode = ({ matrix, url: url2 }) => {
             index2
           );
         }),
-        /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(
+        /* @__PURE__ */ (0, import_jsx_runtime.jsx)(
           Rect,
           {
             x: logoOffset,
@@ -194827,19 +194706,19 @@ var QrCode = ({ matrix, url: url2 }) => {
           }
         )
       ] }),
-      /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(View, { style: { position: "absolute", top: logoOffset + markPad, left: logoOffset + markPad }, children: /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(
+      /* @__PURE__ */ (0, import_jsx_runtime.jsx)(View, { style: { position: "absolute", top: logoOffset + markPad, left: logoOffset + markPad }, children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(
         Svg,
         {
           viewBox: LOGO_MARK_VIEWBOX,
           style: { width: logoBox - markPad * 2, height: logoBox - markPad * 2 },
-          children: LOGO_MARK_PATHS.map((d3, index2) => /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(Path, { d: d3, fill: BROCHURE_COLOR.violet }, index2))
+          children: LOGO_MARK_PATHS.map((d3, index2) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Path, { d: d3, fill: BROCHURE_COLOR.violet }, index2))
         }
       ) })
     ] }),
-    /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(Text, { style: styles.qrCaption, children: "Scan to view package" }),
-    /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)(View, { style: styles.qrAction, children: [
-      /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(Text, { style: styles.qrActionLabel, children: "or tap to open" }),
-      /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(Svg, { viewBox: EXTERNAL_LINK.viewBox, style: { width: 9, height: 9 }, children: EXTERNAL_LINK.paths.map((d3, index2) => /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(
+    /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Text, { style: styles.qrCaption, children: "Scan to view package" }),
+    /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(View, { style: styles.qrAction, children: [
+      /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Text, { style: styles.qrActionLabel, children: "or tap to open" }),
+      /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Svg, { viewBox: EXTERNAL_LINK.viewBox, style: { width: 9, height: 9 }, children: EXTERNAL_LINK.paths.map((d3, index2) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(
         Path,
         {
           d: d3,
@@ -194859,14 +194738,14 @@ var Section = ({
   children,
   paged,
   solid
-}) => /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)(View, { wrap: !paged || !solid, children: [
-  /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(Text, { style: styles.sectionHeading, children: heading }),
+}) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(View, { wrap: !paged || !solid, children: [
+  /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Text, { style: styles.sectionHeading, children: heading }),
   children
 ] });
-var Header = ({ model, hasQr }) => /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)(View, { style: styles.header, children: [
-  /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(View, { style: styles.brandRow, children: /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(Svg, { viewBox: LOGO_VIEWBOX, style: { width: 172, height: 32 }, children: LOGO_PATHS.map((d3, index2) => /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(Path, { d: d3, fill: BROCHURE_COLOR.violet }, index2)) }) }),
-  /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)(View, { style: hasQr ? [styles.titleBlock, styles.titleBlockWithQr] : styles.titleBlock, children: [
-    /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(
+var Header = ({ model, hasQr }) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(View, { style: styles.header, children: [
+  /* @__PURE__ */ (0, import_jsx_runtime.jsx)(View, { style: styles.brandRow, children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Svg, { viewBox: LOGO_VIEWBOX, style: { width: 172, height: 32 }, children: LOGO_PATHS.map((d3, index2) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Path, { d: d3, fill: BROCHURE_COLOR.violet }, index2)) }) }),
+  /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(View, { style: hasQr ? [styles.titleBlock, styles.titleBlockWithQr] : styles.titleBlock, children: [
+    /* @__PURE__ */ (0, import_jsx_runtime.jsx)(
       GradientText,
       {
         value: model.title,
@@ -194881,24 +194760,24 @@ var Header = ({ model, hasQr }) => /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)
         }
       }
     ),
-    /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(Text, { style: styles.subtitle, children: model.subtitle }),
-    model.pricePerPerson != null && /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)(View, { style: styles.pricePill, children: [
-      /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(Text, { style: styles.pricePillLabel, children: "PRICE :" }),
-      /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(Text, { style: styles.pricePillLabel, children: money(model.pricePerPerson) }),
-      /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(Text, { style: styles.pricePillUnit, children: "per person" })
+    /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Text, { style: styles.subtitle, children: model.subtitle }),
+    model.pricePerPerson != null && /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(View, { style: styles.pricePill, children: [
+      /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Text, { style: styles.pricePillLabel, children: "PRICE :" }),
+      /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Text, { style: styles.pricePillLabel, children: money(model.pricePerPerson) }),
+      /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Text, { style: styles.pricePillUnit, children: "per person" })
     ] })
   ] })
 ] });
 var Gallery = ({ model, images, paged }) => {
   if (model.gallery.length === 0) return null;
   const shared = { images };
-  return /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)(View, { style: styles.gallery, wrap: !paged, children: [
-    /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(Picture, { src: model.gallery[0], style: styles.galleryTall, ...shared }),
-    /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)(View, { style: styles.galleryColumn, children: [
-      /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(Picture, { src: model.gallery[1], style: styles.galleryShort, ...shared }),
-      /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(Picture, { src: model.gallery[2], style: styles.galleryShort, ...shared })
+  return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(View, { style: styles.gallery, wrap: !paged, children: [
+    /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Picture, { src: model.gallery[0], style: styles.galleryTall, ...shared }),
+    /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(View, { style: styles.galleryColumn, children: [
+      /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Picture, { src: model.gallery[1], style: styles.galleryShort, ...shared }),
+      /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Picture, { src: model.gallery[2], style: styles.galleryShort, ...shared })
     ] }),
-    /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(Picture, { src: model.gallery[3], style: styles.galleryTall, ...shared })
+    /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Picture, { src: model.gallery[3], style: styles.galleryTall, ...shared })
   ] });
 };
 var KeyFacts = ({ model, images, paged }) => {
@@ -194907,102 +194786,95 @@ var KeyFacts = ({ model, images, paged }) => {
     ...model.travellers ? [{ icon: "travellers", label: "Travellers", value: model.travellers }] : [],
     ...model.arrival ? [{ icon: "arrival", label: "Arrival Date", value: model.arrival }] : []
   ];
-  return /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)(View, { style: styles.keyFacts, wrap: !paged, children: [
-    /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)(View, { children: [
-      /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(Text, { style: styles.sectionHeading, children: "Key Facts" }),
-      /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)(View, { style: styles.keyFactsColumns, children: [
-        /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(View, { style: styles.keyFactsLabels, children: facts.map((fact) => /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)(View, { style: styles.keyFactRow, children: [
-          /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(View, { style: styles.keyFactIconBox, children: /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(Icon, { name: fact.icon, size: fact.icon === "suitcase" ? 19 : fact.icon === "calendar" ? 18 : 22 }) }),
-          /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(Text, { style: styles.keyFactLabel, children: fact.label })
+  return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(View, { style: styles.keyFacts, wrap: !paged, children: [
+    /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(View, { children: [
+      /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Text, { style: styles.sectionHeading, children: "Key Facts" }),
+      /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(View, { style: styles.keyFactsColumns, children: [
+        /* @__PURE__ */ (0, import_jsx_runtime.jsx)(View, { style: styles.keyFactsLabels, children: facts.map((fact) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(View, { style: styles.keyFactRow, children: [
+          /* @__PURE__ */ (0, import_jsx_runtime.jsx)(View, { style: styles.keyFactIconBox, children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Icon, { name: fact.icon, size: fact.icon === "suitcase" ? 19 : fact.icon === "calendar" ? 18 : 22 }) }),
+          /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Text, { style: styles.keyFactLabel, children: fact.label })
         ] }, fact.label)) }),
-        /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(View, { style: styles.keyFactsValues, children: facts.map((fact) => /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(Text, { style: styles.keyFactValue, children: fact.value }, fact.label)) })
+        /* @__PURE__ */ (0, import_jsx_runtime.jsx)(View, { style: styles.keyFactsValues, children: facts.map((fact) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Text, { style: styles.keyFactValue, children: fact.value }, fact.label)) })
       ] })
     ] }),
-    /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(Picture, { src: model.featureImage, style: styles.keyFactsImage, images })
-  ] });
-};
-var TripRouteMap = ({ model, paged }) => {
-  if (!model.overviewMap) return null;
-  return /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)(Section, { heading: "Trip Route Overview", paged, solid: true, children: [
-    /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(View, { style: styles.overviewMapWrap, children: /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(BrochureOverviewMap, { map: model.overviewMap }) }),
-    /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(Text, { style: styles.overviewMapCaption, children: "Start, finish and key checkpoints are generated automatically from this package itinerary." })
+    /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Picture, { src: model.featureImage, style: styles.keyFactsImage, images })
   ] });
 };
 var DayCard = ({
   day,
   paged,
   heading
-}) => /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)(View, { style: styles.day, wrap: !paged, children: [
-  !!heading && /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(Text, { style: [styles.sectionHeading, styles.sectionHeadingInList], children: heading }),
-  /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)(View, { style: styles.dayHeader, children: [
-    /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(Text, { style: styles.dayIndex, children: day.index }),
-    /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(View, { style: styles.dayTitleBox, children: /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(Text, { style: styles.dayTitle, children: day.title }) }),
-    /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)(Text, { style: styles.dayDuration, children: [
+}) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(View, { style: styles.day, wrap: !paged, children: [
+  !!heading && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Text, { style: [styles.sectionHeading, styles.sectionHeadingInList], children: heading }),
+  /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(View, { style: styles.dayHeader, children: [
+    /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Text, { style: styles.dayIndex, children: day.index }),
+    /* @__PURE__ */ (0, import_jsx_runtime.jsx)(View, { style: styles.dayTitleBox, children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Text, { style: styles.dayTitle, children: day.title }) }),
+    /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Text, { style: styles.dayDuration, children: [
       "Duration : ",
       day.duration
     ] })
   ] }),
-  /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(View, { style: styles.dayCard, children: /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)(View, { style: styles.dayColumns, children: [
-    /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)(View, { style: styles.dayColumn, children: [
-      day.description.length > 0 && /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)(View, { style: styles.dayBlock, children: [
-        /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(Text, { style: styles.dayBlockLabel, children: "Description" }),
-        /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(View, { style: { gap: 8 }, children: day.description.map((paragraph, index2) => /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(Text, { style: styles.dayCopy, children: paragraph }, index2)) })
+  /* @__PURE__ */ (0, import_jsx_runtime.jsx)(View, { style: styles.dayCard, children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(View, { style: styles.dayColumns, children: [
+    /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(View, { style: styles.dayColumn, children: [
+      day.description.length > 0 && /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(View, { style: styles.dayBlock, children: [
+        /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Text, { style: styles.dayBlockLabel, children: "Description" }),
+        /* @__PURE__ */ (0, import_jsx_runtime.jsx)(View, { style: { gap: 8 }, children: day.description.map((paragraph, index2) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Text, { style: styles.dayCopy, children: paragraph }, index2)) })
       ] }),
-      /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)(View, { style: styles.dayBlock, children: [
-        /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(Text, { style: styles.dayBlockLabel, children: "Key Facts" }),
-        /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)(View, { style: styles.dayMetaRow, children: [
-          /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)(View, { style: styles.dayMetaItem, children: [
-            /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(Icon, { name: "bed", size: 24 }),
-            /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(Text, { style: styles.dayMetaText, children: day.accommodation })
+      /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(View, { style: styles.dayBlock, children: [
+        /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Text, { style: styles.dayBlockLabel, children: "Key Facts" }),
+        /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(View, { style: styles.dayMetaRow, children: [
+          /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(View, { style: styles.dayMetaItem, children: [
+            /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Icon, { name: "bed", size: 24 }),
+            /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Text, { style: styles.dayMetaText, children: day.accommodation })
           ] }),
-          /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(View, { style: styles.separatorDot }),
-          /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)(View, { style: styles.dayMetaItem, children: [
-            /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(Icon, { name: "bus", size: 24 }),
-            /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(Text, { style: styles.dayMetaText, children: day.transport })
+          /* @__PURE__ */ (0, import_jsx_runtime.jsx)(View, { style: styles.separatorDot }),
+          /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(View, { style: styles.dayMetaItem, children: [
+            /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Icon, { name: "bus", size: 24 }),
+            /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Text, { style: styles.dayMetaText, children: day.transport })
           ] }),
-          /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(View, { style: styles.separatorDot }),
-          /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)(View, { style: [styles.dayMetaItem, { gap: 16 }], children: [
-            /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(View, { style: styles.meterTrack, children: /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(View, { style: [styles.meterFill, { width: 140 * day.difficultyFill }] }) }),
-            /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(Text, { style: styles.dayMetaText, children: day.difficulty })
+          /* @__PURE__ */ (0, import_jsx_runtime.jsx)(View, { style: styles.separatorDot }),
+          /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(View, { style: [styles.dayMetaItem, { gap: 16 }], children: [
+            /* @__PURE__ */ (0, import_jsx_runtime.jsx)(View, { style: styles.meterTrack, children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(View, { style: [styles.meterFill, { width: 140 * day.difficultyFill }] }) }),
+            /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Text, { style: styles.dayMetaText, children: day.difficulty })
           ] })
         ] })
       ] })
     ] }),
-    /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)(View, { style: styles.dayColumn, children: [
-      day.stops.length > 0 && /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)(View, { style: styles.dayBlock, children: [
-        /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(Text, { style: styles.dayBlockLabel, children: "Stops in a Day" }),
-        /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(View, { children: day.stops.map((stop, index2) => /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)(View, { style: styles.stopRow, children: [
-          /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)(View, { style: styles.stopGutter, children: [
-            /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(View, { style: styles.stopOrdinalBox, children: /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)(Text, { style: styles.stopOrdinal, children: [
+    /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(View, { style: styles.dayColumn, children: [
+      day.stops.length > 0 && /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(View, { style: styles.dayBlock, children: [
+        /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Text, { style: styles.dayBlockLabel, children: "Stops in a Day" }),
+        /* @__PURE__ */ (0, import_jsx_runtime.jsx)(View, { children: day.stops.map((stop, index2) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(View, { style: styles.stopRow, children: [
+          /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(View, { style: styles.stopGutter, children: [
+            /* @__PURE__ */ (0, import_jsx_runtime.jsx)(View, { style: styles.stopOrdinalBox, children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Text, { style: styles.stopOrdinal, children: [
               "Stop ",
               index2 + 1
             ] }) }),
-            /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)(View, { style: styles.stopMarkerColumn, children: [
-              /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(View, { style: styles.stopMarker }),
-              index2 < day.stops.length - 1 && /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(View, { style: styles.stopConnector })
+            /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(View, { style: styles.stopMarkerColumn, children: [
+              /* @__PURE__ */ (0, import_jsx_runtime.jsx)(View, { style: styles.stopMarker }),
+              index2 < day.stops.length - 1 && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(View, { style: styles.stopConnector })
             ] })
           ] }),
-          /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(View, { style: styles.stopLabelBox, children: /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(Text, { style: styles.stopLabel, children: stop }) })
+          /* @__PURE__ */ (0, import_jsx_runtime.jsx)(View, { style: styles.stopLabelBox, children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Text, { style: styles.stopLabel, children: stop }) })
         ] }, `${stop}-${index2}`)) })
       ] }),
-      day.activities.length > 0 && /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(View, { style: styles.chipRow, children: day.activities.map((activity, index2) => /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(View, { style: styles.chip, children: /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(Text, { style: styles.chipText, children: activity }) }, `${activity}-${index2}`)) })
+      day.activities.length > 0 && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(View, { style: styles.chipRow, children: day.activities.map((activity, index2) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(View, { style: styles.chip, children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Text, { style: styles.chipText, children: activity }) }, `${activity}-${index2}`)) })
     ] })
   ] }) })
 ] });
-var AddOns = ({ model, images }) => /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(Section, { heading: "Optional Add-Ons", children: /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(View, { style: styles.addonList, children: model.addons.map((addon, index2) => /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)(View, { style: styles.addon, children: [
-  /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(View, { style: styles.addonThumbBox, children: addon.image && images[addon.image] && /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(Image, { src: images[addon.image], style: styles.addonThumbImage }) }),
-  /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)(View, { style: styles.addonBody, children: [
-    /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)(View, { style: styles.addonCopy, children: [
-      /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(Text, { style: styles.addonName, children: addon.name }),
-      !!addon.description && /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(Text, { style: styles.addonDescription, children: addon.description })
+var AddOns = ({ model, images }) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Section, { heading: "Optional Add-Ons", children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(View, { style: styles.addonList, children: model.addons.map((addon, index2) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(View, { style: styles.addon, children: [
+  /* @__PURE__ */ (0, import_jsx_runtime.jsx)(View, { style: styles.addonThumbBox, children: addon.image && images[addon.image] && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Image, { src: images[addon.image], style: styles.addonThumbImage }) }),
+  /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(View, { style: styles.addonBody, children: [
+    /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(View, { style: styles.addonCopy, children: [
+      /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Text, { style: styles.addonName, children: addon.name }),
+      !!addon.description && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Text, { style: styles.addonDescription, children: addon.description })
     ] }),
-    /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)(View, { style: styles.addonPriceBox, children: [
-      /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)(Text, { style: styles.addonPrice, children: [
+    /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(View, { style: styles.addonPriceBox, children: [
+      /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Text, { style: styles.addonPrice, children: [
         money(addon.amount),
         " ",
-        /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(Text, { style: styles.addonPriceUnit, children: addon.unit })
+        /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Text, { style: styles.addonPriceUnit, children: addon.unit })
       ] }),
-      /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(Text, { style: styles.addonNote, children: "includes taxes and charges" })
+      /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Text, { style: styles.addonNote, children: "includes taxes and charges" })
     ] })
   ] })
 ] }, `${addon.name}-${index2}`)) }) });
@@ -195043,27 +194915,27 @@ var ServiceBlock = ({
      * laid the remaining rows on top of each other at the foot of the sheet,
      * losing items outright — starting at the top gives it the most room.
      */
-    /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)(
+    /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(
       View,
       {
         style: styles.service,
         wrap: !paged || !fitsOnePage,
         break: paged && !fitsOnePage && !first2,
         children: [
-          !!heading && /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(Text, { style: [styles.sectionHeading, styles.sectionHeadingInList], children: heading }),
-          /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)(View, { children: [
-            /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(Text, { style: [styles.serviceGhost, { color: service.ghostColor }], children: service.ghost }),
-            /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(Text, { style: [styles.serviceLabel, { color: service.accentDeep }], children: service.label })
+          !!heading && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Text, { style: [styles.sectionHeading, styles.sectionHeadingInList], children: heading }),
+          /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(View, { children: [
+            /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Text, { style: [styles.serviceGhost, { color: service.ghostColor }], children: service.ghost }),
+            /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Text, { style: [styles.serviceLabel, { color: service.accentDeep }], children: service.label })
           ] }),
-          /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(View, { style: styles.servicePanel, children: /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(View, { style: styles.serviceCardRows, children: rows.map((row, rowIndex) => /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(View, { style: styles.serviceCardRow, wrap: !paged, children: row.map((group, index2) => /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)(
+          /* @__PURE__ */ (0, import_jsx_runtime.jsx)(View, { style: styles.servicePanel, children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(View, { style: styles.serviceCardRows, children: rows.map((row, rowIndex) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(View, { style: styles.serviceCardRow, wrap: !paged, children: row.map((group, index2) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(
             View,
             {
               style: row.length === 1 ? [styles.serviceCard, styles.serviceCardWide] : styles.serviceCard,
               children: [
-                !!group.category && /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(Text, { style: [styles.serviceCardHeading, { color: service.accent }], children: group.category }),
-                group.items.map((item, itemIndex) => /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)(View, { style: styles.serviceItem, children: [
-                  /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(Text, { style: styles.serviceBullet, children: "\u2022" }),
-                  /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(Text, { style: styles.serviceItemText, children: item })
+                !!group.category && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Text, { style: [styles.serviceCardHeading, { color: service.accent }], children: group.category }),
+                group.items.map((item, itemIndex) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(View, { style: styles.serviceItem, children: [
+                  /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Text, { style: styles.serviceBullet, children: "\u2022" }),
+                  /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Text, { style: styles.serviceItemText, children: item })
                 ] }, itemIndex))
               ]
             },
@@ -195074,27 +194946,27 @@ var ServiceBlock = ({
     )
   );
 };
-var Footer = ({ agencyName, paged }) => /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(View, { style: styles.footer, wrap: !paged, children: /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)(View, { style: styles.footerInner, children: [
-  /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(Text, { style: styles.footerTitle, children: "Experience Travel with Travories" }),
-  /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(Text, { style: styles.footerBody, children: "Travories connects travelers with trusted local experts to deliver safe, transparent, and authentic travel experiences across Nepal." }),
-  /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)(View, { style: styles.footerContacts, children: [
-    /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)(Link, { src: `mailto:${CONTACT.email}`, style: styles.footerContact, children: [
-      /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(Icon, { name: "mail", size: 26, color: BROCHURE_COLOR.footerText }),
-      /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(Text, { style: styles.footerContactText, children: CONTACT.email })
+var Footer = ({ agencyName, paged }) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(View, { style: styles.footer, wrap: !paged, children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(View, { style: styles.footerInner, children: [
+  /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Text, { style: styles.footerTitle, children: "Experience Travel with Travories" }),
+  /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Text, { style: styles.footerBody, children: "Travories connects travelers with trusted local experts to deliver safe, transparent, and authentic travel experiences across Nepal." }),
+  /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(View, { style: styles.footerContacts, children: [
+    /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Link, { src: `mailto:${CONTACT.email}`, style: styles.footerContact, children: [
+      /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Icon, { name: "mail", size: 26, color: BROCHURE_COLOR.footerText }),
+      /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Text, { style: styles.footerContactText, children: CONTACT.email })
     ] }),
-    /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(View, { style: styles.footerContactDot }),
-    /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)(Link, { src: `tel:${CONTACT.phone.replace(/[^+\d]/g, "")}`, style: styles.footerContact, children: [
-      /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(Icon, { name: "phone", size: 26, color: BROCHURE_COLOR.footerText }),
-      /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(Text, { style: styles.footerContactText, children: CONTACT.phone })
+    /* @__PURE__ */ (0, import_jsx_runtime.jsx)(View, { style: styles.footerContactDot }),
+    /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Link, { src: `tel:${CONTACT.phone.replace(/[^+\d]/g, "")}`, style: styles.footerContact, children: [
+      /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Icon, { name: "phone", size: 26, color: BROCHURE_COLOR.footerText }),
+      /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Text, { style: styles.footerContactText, children: CONTACT.phone })
     ] }),
-    /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(View, { style: styles.footerContactDot }),
-    /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)(Link, { src: `https://${CONTACT.website}`, style: styles.footerContact, children: [
-      /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(Icon, { name: "web", size: 26, color: BROCHURE_COLOR.footerText }),
-      /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(Text, { style: styles.footerContactText, children: CONTACT.website })
+    /* @__PURE__ */ (0, import_jsx_runtime.jsx)(View, { style: styles.footerContactDot }),
+    /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Link, { src: `https://${CONTACT.website}`, style: styles.footerContact, children: [
+      /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Icon, { name: "web", size: 26, color: BROCHURE_COLOR.footerText }),
+      /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Text, { style: styles.footerContactText, children: CONTACT.website })
     ] })
   ] }),
-  /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(Text, { style: styles.footerTagline, children: "Travel smarter. Travel safer. Travel with trust." }),
-  !!agencyName && /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)(Text, { style: styles.footerHostedBy, children: [
+  /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Text, { style: styles.footerTagline, children: "Travel smarter. Travel safer. Travel with trust." }),
+  !!agencyName && /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Text, { style: styles.footerHostedBy, children: [
     "Hosted by ",
     agencyName
   ] })
@@ -195119,27 +194991,26 @@ function PackageBrochureDocument({ model, images, height: height2, qr, packageUr
     model.quote ? void 0 : model.concessions
   ].filter(Boolean);
   const showQr = Boolean(qr && packageUrl);
-  return /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(Document, { title: model.title, author: model.agencyName || "Travories", creator: "Travories", children: /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)(
+  return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Document, { title: model.title, author: model.agencyName || "Travories", creator: "Travories", children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(
     Page,
     {
       size: { width: BROCHURE_PAGE.width, height: height2 },
       style: paged ? [styles.page, styles.pagePaged] : styles.page,
       children: [
-        showQr && /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(QrCode, { matrix: qr, url: packageUrl }),
-        /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(Header, { model, hasQr: showQr }),
-        /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)(View, { style: styles.content, children: [
-          /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(Gallery, { ...shared, paged }),
-          model.overview.length > 0 && /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(Section, { heading: "Overview", paged, solid: true, children: /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(View, { style: { gap: 10 }, children: model.overview.map((paragraph, index2) => /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(Text, { style: styles.overviewCopy, children: paragraph }, index2)) }) }),
-          /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(KeyFacts, { ...shared, paged }),
-          /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(TripRouteMap, { model, paged }),
-          /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)(Section, { heading: "Pricing", paged, solid: true, children: [
-            /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(View, { style: styles.priceRow, wrap: !paged, children: pricingCards.map((card, index2) => /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)(View, { style: styles.priceCard, children: [
-              /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(Text, { style: styles.priceCardLabel, children: card.label }),
-              /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(Text, { style: styles.priceCardValue, children: card.value })
+        showQr && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(QrCode, { matrix: qr, url: packageUrl }),
+        /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Header, { model, hasQr: showQr }),
+        /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(View, { style: styles.content, children: [
+          /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Gallery, { ...shared, paged }),
+          model.overview.length > 0 && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Section, { heading: "Overview", paged, solid: true, children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(View, { style: { gap: 10 }, children: model.overview.map((paragraph, index2) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Text, { style: styles.overviewCopy, children: paragraph }, index2)) }) }),
+          /* @__PURE__ */ (0, import_jsx_runtime.jsx)(KeyFacts, { ...shared, paged }),
+          /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Section, { heading: "Pricing", paged, solid: true, children: [
+            /* @__PURE__ */ (0, import_jsx_runtime.jsx)(View, { style: styles.priceRow, wrap: !paged, children: pricingCards.map((card, index2) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(View, { style: styles.priceCard, children: [
+              /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Text, { style: styles.priceCardLabel, children: card.label }),
+              /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Text, { style: styles.priceCardValue, children: card.value })
             ] }, `${card.label}-${index2}`)) }),
-            pricingNotes.map((note) => /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(Text, { style: styles.priceNote, children: note }, note))
+            pricingNotes.map((note) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Text, { style: styles.priceNote, children: note }, note))
           ] }),
-          model.days.length > 0 && /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(View, { style: styles.dayList, children: model.days.map((day, index2) => /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(
+          model.days.length > 0 && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(View, { style: styles.dayList, children: model.days.map((day, index2) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(
             DayCard,
             {
               day,
@@ -195148,8 +195019,8 @@ function PackageBrochureDocument({ model, images, height: height2, qr, packageUr
             },
             day.index
           )) }),
-          model.addons.length > 0 && /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(AddOns, { ...shared }),
-          model.services.length > 0 && /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(View, { style: styles.serviceList, children: model.services.map((service, index2) => /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(
+          model.addons.length > 0 && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(AddOns, { ...shared }),
+          model.services.length > 0 && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(View, { style: styles.serviceList, children: model.services.map((service, index2) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(
             ServiceBlock,
             {
               service,
@@ -195160,7 +195031,7 @@ function PackageBrochureDocument({ model, images, height: height2, qr, packageUr
             service.ghost
           )) })
         ] }),
-        /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(Footer, { agencyName: model.agencyName, paged })
+        /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Footer, { agencyName: model.agencyName, paged })
       ]
     }
   ) });
@@ -195609,7 +195480,7 @@ var render3 = async (body) => {
   const qr = packageUrl ? buildQrMatrix(packageUrl) : null;
   const paged = body.layout === "a4";
   const renderAt = async (height2) => {
-    const document2 = import_react6.default.createElement(PackageBrochureDocument, {
+    const document2 = import_react5.default.createElement(PackageBrochureDocument, {
       model,
       images,
       height: height2,

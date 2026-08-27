@@ -3,7 +3,6 @@ import React from "react";
 import { Document, Image, Link, Page, Path, Rect, Svg, Text, View } from "@react-pdf/renderer";
 
 import { BROCHURE_ICONS, type BrochureIconName, type IconSpec } from "./iconPaths.js";
-import { BrochureOverviewMap } from "./BrochureOverviewMap.js";
 import type { BrochureDay, BrochureModel, BrochureService } from "./model.js";
 import type { QrMatrix } from "./qr.js";
 import { styles } from "./styles.js";
@@ -394,20 +393,6 @@ const KeyFacts = ({ model, images, paged }: Pick<DocProps, "model" | "images" | 
   );
 };
 
-const TripRouteMap = ({ model, paged }: Pick<DocProps, "model" | "paged">) => {
-  if (!model.overviewMap) return null;
-  return (
-    <Section heading="Trip Route Overview" paged={paged} solid>
-      <View style={styles.overviewMapWrap}>
-        <BrochureOverviewMap map={model.overviewMap} />
-      </View>
-      <Text style={styles.overviewMapCaption}>
-        Start, finish and key checkpoints are generated automatically from this package itinerary.
-      </Text>
-    </Section>
-  );
-};
-
 const DayCard = ({
   day,
   paged,
@@ -751,8 +736,6 @@ export function PackageBrochureDocument({ model, images, height, qr, packageUrl,
           )}
 
           <KeyFacts {...shared} paged={paged} />
-
-          <TripRouteMap model={model} paged={paged} />
 
           <Section heading="Pricing" paged={paged} solid>
               <View style={styles.priceRow} wrap={!paged}>
