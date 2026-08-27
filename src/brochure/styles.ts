@@ -114,6 +114,14 @@ export const styles = StyleSheet.create({
 
   /* ── Overview ───────────────────────────────────────────────────────── */
   overviewCopy: { fontSize: 20, lineHeight: 1.5, color: C.text, letterSpacing: -0.4 },
+  overviewMapWrap: { alignItems: "center" },
+  overviewMapCaption: {
+    marginTop: 10,
+    fontSize: 13,
+    lineHeight: 1.35,
+    color: C.muted,
+    textAlign: "center",
+  },
 
   /* ── Key facts ──────────────────────────────────────────────────────── */
   keyFacts: { flexDirection: "row", justifyContent: "space-between", paddingBottom: 24 },
