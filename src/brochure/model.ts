@@ -253,7 +253,7 @@ const routeMode = (value: unknown): BrochureMapRoute["mode"] => {
   const mode = clean(String(value ?? "")).toLowerCase();
   if (/(air|flight|flying)/.test(mode)) return "air";
   if (/(walk|trek|hike|foot)/.test(mode)) return "walking";
-  if (/(drive|car|jeep|bus|motor)/.test(mode)) return "driving";
+  if (/(driv|car|jeep|bus|motor)/.test(mode)) return "driving";
   return "other";
 };
 
