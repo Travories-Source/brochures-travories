@@ -8,6 +8,7 @@ const WIDTH = 720;
 const HEIGHT = 360;
 const PAD_X = 76;
 const PAD_Y = 42;
+const MAX_KEY_STOPS = 7;
 
 type Point = { x: number; y: number };
 
@@ -18,10 +19,31 @@ const routeStyle = (mode: BrochureMapRoute["mode"]) => {
   return { color: C.muted, dash: "3 5", label: "Route" };
 };
 
-const labelPosition = (point: Point, index: number): { left: number; top: number } => ({
-  left: Math.min(WIDTH - 132, Math.max(8, point.x + (index % 2 ? -118 : 12))),
-  top: Math.min(HEIGHT - 28, Math.max(4, point.y + (index % 3 === 0 ? 11 : -25))),
-});
+const keyStops = <T extends { sequence: number }>(stops: T[]): T[] => {
+  if (stops.length <= MAX_KEY_STOPS) return stops;
+  const selected = new Set<number>();
+  for (let index = 0; index < MAX_KEY_STOPS; index += 1) {
+    selected.add(Math.round((index * (stops.length - 1)) / (MAX_KEY_STOPS - 1)));
+  }
+  return stops.filter((_, index) => selected.has(index));
+};
+
+type LabelBox = { left: number; top: number; width: number; height: number };
+const overlaps = (a: LabelBox, b: LabelBox) =>
+  a.left < b.left + b.width && a.left + a.width > b.left && a.top < b.top + b.height && a.top + a.height > b.top;
+
+const labelCandidates = (point: Point): LabelBox[] => [
+  { left: point.x + 12, top: point.y - 25, width: 116, height: 24 },
+  { left: point.x - 128, top: point.y - 25, width: 116, height: 24 },
+  { left: point.x + 12, top: point.y + 11, width: 116, height: 24 },
+  { left: point.x - 128, top: point.y + 11, width: 116, height: 24 },
+].map((box) => ({
+  ...box,
+  left: Math.min(WIDTH - box.width - 8, Math.max(8, box.left)),
+  top: Math.min(HEIGHT - box.height - 8, Math.max(4, box.top)),
+}));
+
+const shortName = (name: string) => name.length > 22 ? `${name.slice(0, 20).trim()}…` : name;
 
 /**
  * A data-only map for PDFs. It deliberately does not use web tiles: brochure
@@ -66,6 +88,16 @@ export const BrochureOverviewMap = ({ map }: { map: OverviewMap }) => {
     const right = [to.x - size * Math.cos(angle + 0.55), to.y - size * Math.sin(angle + 0.55)];
     return `M${left[0]} ${left[1]} L${to.x} ${to.y} L${right[0]} ${right[1]}`;
   };
+  const displayedStops = keyStops(map.stops);
+  const occupied: LabelBox[] = [];
+  const labels = displayedStops.flatMap((stop) => {
+    const position = project([stop.lat, stop.lng]);
+    const box = labelCandidates(position).find((candidate) => !occupied.some((used) => overlaps(candidate, used)));
+    if (!box) return [];
+    occupied.push(box);
+    const endpoint = stop.sequence === 1 ? "START · " : stop.sequence === map.stops.length ? "END · " : "";
+    return [{ stop, box, text: `${endpoint}${stop.sequence}. ${shortName(stop.name)}` }];
+  });
 
   return (
     <View style={{ width: WIDTH, height: HEIGHT, position: "relative", borderRadius: 10, overflow: "hidden", borderWidth: 1, borderColor: C.stroke, backgroundColor: "#F7FAFC" }}>
@@ -85,7 +117,7 @@ export const BrochureOverviewMap = ({ map }: { map: OverviewMap }) => {
             </React.Fragment>
           );
         })}
-        {map.stops.map((stop) => {
+        {displayedStops.map((stop) => {
           const point = project([stop.lat, stop.lng]);
           const first = stop.sequence === 1;
           const last = stop.sequence === map.stops.length;
@@ -101,11 +133,8 @@ export const BrochureOverviewMap = ({ map }: { map: OverviewMap }) => {
         <Text x={35} y={58} style={{ fontSize: 10, fontWeight: 700, color: C.violet }}>N</Text>
       </Svg>
 
-      {map.stops.map((stop, index) => {
-        const point = project([stop.lat, stop.lng]);
-        const position = labelPosition(point, index);
-        const endpoint = index === 0 ? "START · " : index === map.stops.length - 1 ? "END · " : "";
-        return <Text key={`${stop.name}-${stop.sequence}-label`} style={{ position: "absolute", width: 124, left: position.left, top: position.top, fontSize: 9, lineHeight: 1.15, fontWeight: 600, color: C.text }}>{`${endpoint}${stop.sequence}. ${stop.name}`}</Text>;
+      {labels.map(({ stop, box, text }) => {
+        return <Text key={`${stop.name}-${stop.sequence}-label`} style={{ position: "absolute", width: box.width, left: box.left, top: box.top, fontSize: 9, lineHeight: 1.15, fontWeight: 600, color: C.text }}>{text}</Text>;
       })}
 
       <View style={{ position: "absolute", right: 14, bottom: 12, flexDirection: "row", gap: 10, paddingHorizontal: 9, paddingVertical: 6, borderRadius: 5, backgroundColor: "rgba(255,255,255,0.92)" }}>
@@ -114,6 +143,11 @@ export const BrochureOverviewMap = ({ map }: { map: OverviewMap }) => {
           return <View key={mode} style={{ flexDirection: "row", gap: 4, alignItems: "center" }}><View style={{ width: 10, height: 3, backgroundColor: style.color }} /><Text style={{ fontSize: 8, color: C.text }}>{style.label}</Text></View>;
         })}
       </View>
+      {map.stops.length > displayedStops.length && (
+        <Text style={{ position: "absolute", left: 14, bottom: 14, fontSize: 8, color: C.muted }}>
+          {`${displayedStops.length} key stops shown of ${map.stops.length}`}
+        </Text>
+      )}
     </View>
   );
 };

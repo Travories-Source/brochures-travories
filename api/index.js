@@ -194238,16 +194238,33 @@ var WIDTH = 720;
 var HEIGHT = 360;
 var PAD_X = 76;
 var PAD_Y = 42;
+var MAX_KEY_STOPS = 7;
 var routeStyle = (mode) => {
   if (mode === "walking") return { color: BROCHURE_COLOR.secondary, dash: "3 6", label: "Trek" };
   if (mode === "air") return { color: BROCHURE_COLOR.violet, dash: "9 7", label: "Flight" };
   if (mode === "driving") return { color: BROCHURE_COLOR.primary, dash: void 0, label: "Drive" };
   return { color: BROCHURE_COLOR.muted, dash: "3 5", label: "Route" };
 };
-var labelPosition = (point, index2) => ({
-  left: Math.min(WIDTH - 132, Math.max(8, point.x + (index2 % 2 ? -118 : 12))),
-  top: Math.min(HEIGHT - 28, Math.max(4, point.y + (index2 % 3 === 0 ? 11 : -25)))
-});
+var keyStops = (stops) => {
+  if (stops.length <= MAX_KEY_STOPS) return stops;
+  const selected = /* @__PURE__ */ new Set();
+  for (let index2 = 0; index2 < MAX_KEY_STOPS; index2 += 1) {
+    selected.add(Math.round(index2 * (stops.length - 1) / (MAX_KEY_STOPS - 1)));
+  }
+  return stops.filter((_, index2) => selected.has(index2));
+};
+var overlaps = (a4, b3) => a4.left < b3.left + b3.width && a4.left + a4.width > b3.left && a4.top < b3.top + b3.height && a4.top + a4.height > b3.top;
+var labelCandidates = (point) => [
+  { left: point.x + 12, top: point.y - 25, width: 116, height: 24 },
+  { left: point.x - 128, top: point.y - 25, width: 116, height: 24 },
+  { left: point.x + 12, top: point.y + 11, width: 116, height: 24 },
+  { left: point.x - 128, top: point.y + 11, width: 116, height: 24 }
+].map((box) => ({
+  ...box,
+  left: Math.min(WIDTH - box.width - 8, Math.max(8, box.left)),
+  top: Math.min(HEIGHT - box.height - 8, Math.max(4, box.top))
+}));
+var shortName = (name) => name.length > 22 ? `${name.slice(0, 20).trim()}\u2026` : name;
 var BrochureOverviewMap = ({ map }) => {
   const all = [...map.stops.map((stop) => [stop.lat, stop.lng]), ...map.routes.flatMap((route) => route.coordinates)];
   const minLat = Math.min(...all.map(([lat]) => lat));
@@ -194284,6 +194301,16 @@ var BrochureOverviewMap = ({ map }) => {
     const right = [to.x - size * Math.cos(angle + 0.55), to.y - size * Math.sin(angle + 0.55)];
     return `M${left[0]} ${left[1]} L${to.x} ${to.y} L${right[0]} ${right[1]}`;
   };
+  const displayedStops = keyStops(map.stops);
+  const occupied = [];
+  const labels = displayedStops.flatMap((stop) => {
+    const position = project([stop.lat, stop.lng]);
+    const box = labelCandidates(position).find((candidate) => !occupied.some((used) => overlaps(candidate, used)));
+    if (!box) return [];
+    occupied.push(box);
+    const endpoint = stop.sequence === 1 ? "START \xB7 " : stop.sequence === map.stops.length ? "END \xB7 " : "";
+    return [{ stop, box, text: `${endpoint}${stop.sequence}. ${shortName(stop.name)}` }];
+  });
   return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(View, { style: { width: WIDTH, height: HEIGHT, position: "relative", borderRadius: 10, overflow: "hidden", borderWidth: 1, borderColor: BROCHURE_COLOR.stroke, backgroundColor: "#F7FAFC" }, children: [
     /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Svg, { viewBox: `0 0 ${WIDTH} ${HEIGHT}`, style: { width: WIDTH, height: HEIGHT }, children: [
       /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Rect, { x: 0, y: 0, width: WIDTH, height: HEIGHT, fill: "#F7FAFC" }),
@@ -194296,7 +194323,7 @@ var BrochureOverviewMap = ({ map }) => {
           arrow(route.coordinates) && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Path, { d: arrow(route.coordinates), stroke: style.color, strokeWidth: 2.5, fill: "none", strokeLinecap: "round", strokeLinejoin: "round" })
         ] }, index2);
       }),
-      map.stops.map((stop) => {
+      displayedStops.map((stop) => {
         const point = project([stop.lat, stop.lng]);
         const first2 = stop.sequence === 1;
         const last3 = stop.sequence === map.stops.length;
@@ -194309,11 +194336,8 @@ var BrochureOverviewMap = ({ map }) => {
       /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Path, { d: "M31 44 L39 20 L47 44 L39 38 Z", fill: BROCHURE_COLOR.violet }),
       /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Text, { x: 35, y: 58, style: { fontSize: 10, fontWeight: 700, color: BROCHURE_COLOR.violet }, children: "N" })
     ] }),
-    map.stops.map((stop, index2) => {
-      const point = project([stop.lat, stop.lng]);
-      const position = labelPosition(point, index2);
-      const endpoint = index2 === 0 ? "START \xB7 " : index2 === map.stops.length - 1 ? "END \xB7 " : "";
-      return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Text, { style: { position: "absolute", width: 124, left: position.left, top: position.top, fontSize: 9, lineHeight: 1.15, fontWeight: 600, color: BROCHURE_COLOR.text }, children: `${endpoint}${stop.sequence}. ${stop.name}` }, `${stop.name}-${stop.sequence}-label`);
+    labels.map(({ stop, box, text }) => {
+      return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Text, { style: { position: "absolute", width: box.width, left: box.left, top: box.top, fontSize: 9, lineHeight: 1.15, fontWeight: 600, color: BROCHURE_COLOR.text }, children: text }, `${stop.name}-${stop.sequence}-label`);
     }),
     /* @__PURE__ */ (0, import_jsx_runtime.jsx)(View, { style: { position: "absolute", right: 14, bottom: 12, flexDirection: "row", gap: 10, paddingHorizontal: 9, paddingVertical: 6, borderRadius: 5, backgroundColor: "rgba(255,255,255,0.92)" }, children: ["driving", "walking", "air"].filter((mode) => map.routes.some((route) => route.mode === mode)).map((mode) => {
       const style = routeStyle(mode);
@@ -194321,7 +194345,8 @@ var BrochureOverviewMap = ({ map }) => {
         /* @__PURE__ */ (0, import_jsx_runtime.jsx)(View, { style: { width: 10, height: 3, backgroundColor: style.color } }),
         /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Text, { style: { fontSize: 8, color: BROCHURE_COLOR.text }, children: style.label })
       ] }, mode);
-    }) })
+    }) }),
+    map.stops.length > displayedStops.length && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Text, { style: { position: "absolute", left: 14, bottom: 14, fontSize: 8, color: BROCHURE_COLOR.muted }, children: `${displayedStops.length} key stops shown of ${map.stops.length}` })
   ] });
 };
 
@@ -194900,7 +194925,7 @@ var TripRouteMap = ({ model, paged }) => {
   if (!model.overviewMap) return null;
   return /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)(Section, { heading: "Trip Route Overview", paged, solid: true, children: [
     /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(View, { style: styles.overviewMapWrap, children: /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(BrochureOverviewMap, { map: model.overviewMap }) }),
-    /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(Text, { style: styles.overviewMapCaption, children: "Route direction and stops are generated automatically from this package itinerary." })
+    /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(Text, { style: styles.overviewMapCaption, children: "Start, finish and key checkpoints are generated automatically from this package itinerary." })
   ] });
 };
 var DayCard = ({
