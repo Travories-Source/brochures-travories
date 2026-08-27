@@ -63,6 +63,25 @@ export interface BrochureService {
   groups: BrochureServiceGroup[];
 }
 
+/** A printable, north-up overview of the whole itinerary. */
+export interface BrochureMapStop {
+  name: string;
+  lat: number;
+  lng: number;
+  sequence: number;
+}
+
+export interface BrochureMapRoute {
+  /** Coordinates are [latitude, longitude], ordered in travel direction. */
+  coordinates: Array<[number, number]>;
+  mode: "driving" | "walking" | "air" | "other";
+}
+
+export interface BrochureOverviewMap {
+  stops: BrochureMapStop[];
+  routes: BrochureMapRoute[];
+}
+
 export interface BrochureModel {
   agencyName: string;
   title: string;
@@ -87,6 +106,8 @@ export interface BrochureModel {
   arrival: string;
   /** Every distinct remote image the document references, for preloading. */
   imageUrls: string[];
+  /** Null when the itinerary has fewer than two geocoded stops. */
+  overviewMap: BrochureOverviewMap | null;
 }
 
 /**
@@ -220,6 +241,75 @@ const toDay = (day: any, position: number): BrochureDay => {
   };
 };
 
+const validCoordinate = (value: any): value is [number, number] =>
+  Array.isArray(value) &&
+  value.length >= 2 &&
+  Number.isFinite(Number(value[0])) &&
+  Number.isFinite(Number(value[1])) &&
+  Math.abs(Number(value[0])) <= 90 &&
+  Math.abs(Number(value[1])) <= 180;
+
+const routeMode = (value: unknown): BrochureMapRoute["mode"] => {
+  const mode = clean(String(value ?? "")).toLowerCase();
+  if (/(air|flight|flying)/.test(mode)) return "air";
+  if (/(walk|trek|hike|foot)/.test(mode)) return "walking";
+  if (/(drive|car|jeep|bus|motor)/.test(mode)) return "driving";
+  return "other";
+};
+
+/** Converts GeoJSON [lng, lat] to the [lat, lng] format used by the map. */
+const geoJsonCoordinates = (geometry: any): Array<[number, number]> => {
+  if (typeof geometry === "string") {
+    try {
+      geometry = JSON.parse(geometry);
+    } catch {
+      return [];
+    }
+  }
+  if (!geometry?.coordinates) return [];
+  const points = geometry.type === "MultiLineString" ? geometry.coordinates.flat() : geometry.coordinates;
+  if (!Array.isArray(points)) return [];
+  return points
+    .filter((point: any) =>
+      Array.isArray(point) && Number.isFinite(Number(point[0])) && Number.isFinite(Number(point[1])) &&
+      Math.abs(Number(point[0])) <= 180 && Math.abs(Number(point[1])) <= 90,
+    )
+    .map((point: [number, number]) => [Number(point[1]), Number(point[0])]);
+};
+
+const buildOverviewMap = (days: any[] | null | undefined): BrochureOverviewMap | null => {
+  const stops: BrochureMapStop[] = [];
+  const routes: BrochureMapRoute[] = [];
+  const seenStops = new Set<string>();
+
+  for (const day of days ?? []) {
+    const moments = day?.moments?.length ? day.moments : [day];
+    for (const moment of moments) {
+      for (const location of moment?.locations ?? []) {
+        const coordinate = location?.coord ?? (location?.lat != null && location?.lng != null ? [location.lat, location.lng] : null);
+        if (!validCoordinate(coordinate)) continue;
+        const lat = Number(coordinate[0]);
+        const lng = Number(coordinate[1]);
+        const name = clean(location?.displayName ?? location?.name) || "Stop";
+        const key = `${name}|${lat.toFixed(5)}|${lng.toFixed(5)}`;
+        if (seenStops.has(key)) continue;
+        seenStops.add(key);
+        stops.push({ name, lat, lng, sequence: stops.length + 1 });
+      }
+      for (const route of moment?.routes ?? []) {
+        const coordinates = geoJsonCoordinates(route?.geometry);
+        if (coordinates.length >= 2) routes.push({ coordinates, mode: routeMode(route?.travelMode ?? route?.mode) });
+      }
+    }
+  }
+
+  if (stops.length < 2) return null;
+  // Older packages may not have saved routing geometry yet. A geographic
+  // connection is still useful, and intentionally uses a neutral dashed line.
+  if (routes.length === 0) routes.push({ coordinates: stops.map((stop) => [stop.lat, stop.lng]), mode: "other" });
+  return { stops, routes };
+};
+
 const toServiceGroups = (groups?: any[] | null): BrochureServiceGroup[] =>
   (groups ?? [])
     .map((group) => ({
@@ -326,6 +416,7 @@ export function buildBrochureModel(pkg: BrochurePackageSource, party?: BrochureP
     travellers: priced ? describeParty(party!) : "",
     arrival: formatArrivalDate(party?.arrivalDate),
     imageUrls: [],
+    overviewMap: buildOverviewMap(pkg.days),
   };
 
   model.imageUrls = Array.from(
