@@ -195604,6 +195604,7 @@ var toDataUrl = async (url2) => {
 };
 var render3 = async (body) => {
   const model = buildBrochureModel(body.package, body.party);
+  if (body.includeRouteMaps === false) model.days = model.days.map((day) => ({ ...day, routeMap: null }));
   const entries = await Promise.all(model.imageUrls.map(async (url2) => {
     const data = await toDataUrl(url2);
     return data ? [url2, data] : null;

@@ -23,6 +23,7 @@ type RequestBody = {
   packageUrl?: string;
   /** "a4" paginates into printable pages; anything else keeps one tall page. */
   layout?: "continuous" | "a4";
+  includeRouteMaps?: boolean;
 };
 
 const asDataUrl = async (url: string): Promise<string | null> => {
@@ -58,6 +59,7 @@ const isAuthorized = (received: string | undefined, expected: string) => {
 
 async function render(body: RequestBody): Promise<{ bytes: Buffer; filename: string }> {
   const model = buildBrochureModel(body.package, body.party);
+  if (body.includeRouteMaps === false) model.days = model.days.map((day) => ({ ...day, routeMap: null }));
   const images = await loadImages(model.imageUrls);
 
   // Callers decide QR eligibility, because only they know the package's status:
